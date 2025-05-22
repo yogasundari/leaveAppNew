@@ -1,0 +1,42 @@
+.register-container {
+  max-width: 400px;
+  margin: auto;
+  padding: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+input, select, button {
+  display: block;
+  width: 100%;
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+}
+button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+button:hover {
+  background-color: #0056b3;
+}
+.redirect-text {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.redirect-text a {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.redirect-text a:hover {
+  text-decoration: underline;
+}
+.logo {
+  display: block;
+  margin: 0 auto 1rem;
+  width: 120px; /* Adjust size as needed */
+}
