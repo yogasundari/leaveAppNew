@@ -12,26 +12,31 @@ const Login = () => {
   });
 
   const [message, setMessage] = useState("");
-const navigate = useNavigate();
+  const navigate = useNavigate();
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await loginUser(formData);
-      setMessage("Login successful!");
-navigate("/dashboard"); 
-      // Save token or user data if API returns it
-      console.log("Response:", res.data);
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const res = await loginUser(formData);
+    
+    // Store token locally
+    localStorage.setItem("token", res.data.token);  // adjust this if token path is different
+    console.log("empid is stoing in local storage", res.data.empId);
+    localStorage.setItem("empId", res.data.empId);
+    localStorage.setItem("email", res.data.email);
+    localStorage.setItem("role", res.data.role);
 
-      // Example: Redirect to dashboard
-      // window.location.href = "/dashboard";
-    } catch (error) {
-      setMessage("Login failed: " + (error.response?.data?.message || error.message));
-    }
-  };
+    setMessage("Login successful!");
+    console.log("Response:", res.data);
+    navigate("/dashboard");
+  } catch (error) {
+    setMessage("Login failed: " + (error.response?.data?.message || error.message));
+  }
+};
+
 
   return (
     <div className="login-container">
@@ -44,12 +49,12 @@ navigate("/dashboard");
       </form>
       {message && <p>{message}</p>}
       <p className="redirect-text">
-  Don’t have an account? <a href="/register">Register</a>
-  <p className="forgot-password">
-  <a href="/forgot-password">Forgot Password?</a>
-</p>
+          Don’t have an account? <a href="/register">Register</a></p>
+       <p className="forgot-password">
+      <a href="/forgot-password">Forgot Password?</a>
+      </p>
 
-</p>
+
 
     </div>
   );
