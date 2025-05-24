@@ -39,6 +39,7 @@ const LeaveRequestPage = () => {
   const [notificationStatus, setNotificationStatus] = useState('');
   const [errors, setErrors] = useState([]);
   const [successMessage, setSuccessMessage] = useState('');
+  const [showAlterationMode, setShowAlterationMode] = useState(false); // Add this state
 
   // Handle form field changes
   const handleFieldChange = (field, value) => {
@@ -47,10 +48,32 @@ const LeaveRequestPage = () => {
       [field]: value
     }));
     
+    // Reset alteration mode visibility when hasClass changes
+    if (field === 'hasClass') {
+      setShowAlterationMode(false);
+      if (value === 'no') {
+        // Clear alteration-related fields when "No" is selected
+        setFormData(prev => ({
+          ...prev,
+          alterationMode: '',
+          classPeriod: '',
+          subjectCode: '',
+          subjectName: '',
+          moodleLink: '',
+          alteredFaculty: ''
+        }));
+      }
+    }
+    
     // Clear errors when user starts typing
     if (errors.length > 0) {
       setErrors([]);
     }
+  };
+
+  // Handle move to alteration button click
+  const handleMoveToAlteration = () => {
+    setShowAlterationMode(true);
   };
 
   // Handle form submission
@@ -165,6 +188,7 @@ const LeaveRequestPage = () => {
     setNotificationStatus('');
     setErrors([]);
     setSuccessMessage('');
+    setShowAlterationMode(false); // Reset alteration mode visibility
   };
 
   return (
@@ -220,6 +244,8 @@ const LeaveRequestPage = () => {
           onChange={handleFieldChange} 
           onSendNotification={handleSendNotification}
           notificationStatus={notificationStatus}
+          showAlterationMode={showAlterationMode}
+          onMoveToAlteration={handleMoveToAlteration}
         />
 
         {/* Submit Button */}
