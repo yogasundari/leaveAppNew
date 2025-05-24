@@ -50,12 +50,13 @@ const ProfileUpdate = () => {
       setFormData({
         empName: data.empName || '',
         designation: data.designation || '',
-        departmentId: data.departmentId || '',
+        departmentId: data.department ? data.department.departmentId : '',
         staffType: data.staffType || '',
         profilePicture: data.profilePicture || '',
         approvalFlowId: data.approvalFlowId || '',
         joiningDate: employeeService.formatDateForInput(data.joiningDate)
       });
+console.log('Fetched profile after update:', data);
 
 setImagePreview(data.profilePicture || '');
 console.log('Profile Picture URL:', data.profilePicture);
@@ -89,10 +90,12 @@ const handleImageUpload = async () => {
   }
   setIsUploading(true);
   setMessage('');
-
+const empId = localStorage.getItem('empId'); 
+console.log('empId (handleImageUpload):', empId);
   try {
     // Get the uploaded image URL from the response
     const uploadedImageUrl = await employeeService.uploadProfilePicture(userData.empId, selectedFile);
+
 
     // Optionally re-fetch profile (if needed)
     const updatedProfile = await employeeService.getEmployeeProfile(userData.empId);
@@ -210,22 +213,25 @@ const handleImageUpload = async () => {
           <label className="form-label" htmlFor="departmentId">
             Department <span style={{ color: '#dc3545', marginLeft: '4px' }}>*</span>
           </label>
-          <select
-            id="departmentId"
-            name="departmentId"
-            value={formData.departmentId}
-            onChange={handleInputChange}
-            className="form-select"
-            required
-          >
-            <option value="">Select Department</option>
-            {departments.map((dept) => (
-              <option key={dept.departmentId} value={dept.departmentId}>
-                {dept.deptName}
+             <select
+                id="departmentId"
+              name="departmentId"
+             value={Number(formData.departmentId)} // Ensure selected value is a number
+             onChange={(e) =>
+               setFormData((prev) => ({
+                 ...prev,
+                    departmentId: parseInt(e.target.value, 10), // Parse to integer
+                       }))
+                }
+               className="form-select"
+               required>
+              <option value="">Select Department</option>
+              {departments.map((dept) => (
+                   <option key={dept.departmentId} value={dept.departmentId}>
+               {dept.deptName}
               </option>
-            ))}
-          </select>
-        </div>
+               ))}
+       </select></div>
 
         {userData.role === 'ADMIN' && (
           <FormInput

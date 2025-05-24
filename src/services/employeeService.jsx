@@ -82,7 +82,7 @@ const message = await response.text(); // correctly handles plain text
 
      console.log("empId (uploadProfilePicture):", empId);
 
-      const response = await fetch(`${this.baseURL}/employees/upload-picture/TSAI018`, {
+      const response = await fetch(`${this.baseURL}/employees/upload-picture/${empId}`, {
         method: 'POST',
         headers: this.getMultipartAuthHeaders(),
         body: formData
