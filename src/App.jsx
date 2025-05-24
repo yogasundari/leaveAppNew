@@ -10,6 +10,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import Logout from "./pages/Logout";
 import LeaveHistory from "./pages/LeaveHistory";
 import Approval from "./pages/Approval";
+import LeaveRequestPage from "./pages/LeaveRequestPage";
 
 
 
@@ -25,6 +26,7 @@ export default function App() {
            <PrivateRoute>
                  <Routes>
                    <Route index element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
+                  <Route path="leaverequests" element={<ErrorBoundary><LeaveRequestPage /></ErrorBoundary>} />
                    <Route path="profile-update" element={<ErrorBoundary><ProfileUpdate /></ErrorBoundary>} />
                   <Route path="logout" element={<ErrorBoundary><Logout /></ErrorBoundary>} />
                   <Route path="leave-history" element={<PrivateRoute><LeaveHistory/></PrivateRoute>} />

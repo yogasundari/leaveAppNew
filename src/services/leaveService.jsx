@@ -47,7 +47,15 @@ class LeaveService {
         throw new Error(`Failed to fetch approval status: ${response.status} ${response.statusText}`);
       }
 
-      return await response.json();
+      const text = await response.text();
+
+    // If empty, return an empty array
+    if (!text) {
+      return [];
+    }
+
+    // Try parsing JSON safely
+    return JSON.parse(text);
     } catch (error) {
       console.error('Error fetching approval status:', error);
       throw error;

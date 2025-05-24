@@ -12,31 +12,33 @@ const StatusModal = ({
 }) => {
   if (!selectedLeave) return null;
 
-  const TimelineItem = ({ item, index }) => {
-    const statusColor = leaveService.getStatusColor(item.status);
-    
-    return (
-      <div className="timeline-item">
-        <span 
-          className="timeline-dot"
-          style={{ 
-            backgroundColor: statusColor,
-            color: statusColor 
-          }}
-        />
-        <div className="timeline-content">
-          <p className="approver-id">Approver ID: {item.empId}</p>
-          <p className="status" style={{ color: statusColor }}>
-            Status: {item.status}
-          </p>
-          <p className="reason">Reason: {item.reason || '-'}</p>
-          <p className="timestamp">
-            Action Time: {leaveService.formatDate(item.actionTimestamp)}
-          </p>
-        </div>
+ const TimelineItem = ({ item, index }) => {
+  const statusColor = leaveService.getStatusColor(item.status);
+
+  return (
+    <div className="timeline-item">
+      <span 
+        className="timeline-dot"
+        style={{ 
+          backgroundColor: statusColor,
+          color: statusColor 
+        }}
+      />
+      <div className="timeline-content">
+        <p className="approver-id">Approver ID: {item.empId}</p>
+        <p className="approver-name">Approver Name: {item.empName || '-'}</p>
+        <p className="status" style={{ color: statusColor }}>
+          Status: {item.status}
+        </p>
+        <p className="reason">Reason: {item.reason || '-'}</p>
+        <p className="timestamp">
+          Action Time: {leaveService.formatDate(item.actionTimestamp)}
+        </p>
       </div>
-    );
-  };
+    </div>
+  );
+};
+
 
   return (
     <div className="modal-overlay" onClick={onClose}>

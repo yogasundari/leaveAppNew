@@ -31,46 +31,48 @@ export default function Approval() {
     });
 }, []);
 
-  const handleAction = async (approvalId, status) => {
-    const reason = actionReason[approvalId] || "";
-    if (!reason.trim()) {
-      alert("Please enter a reason before proceeding.");
-      return;
-    }
+const handleAction = async (approvalId, status) => {
+  const reason = actionReason[approvalId] || "";
+  if (!reason.trim()) {
+    alert("Please enter a reason before proceeding.");
+    return;
+  }
 
-    setProcessingId(approvalId);
-const dataToSend = {
-  status: "APPROVED",
-  reason: "Looks good."
+  setProcessingId(approvalId);
+
+  const dataToSend = {
+    status,     // dynamically passed status from function call
+    reason,     // dynamically typed reason from user input
+  };
+
+  console.log("Data being sent:", dataToSend);
+
+  try {
+    const res = await fetch(`${API_BASE}/process/${approvalId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify(dataToSend),
+    });
+
+    if (!res.ok) throw new Error("Failed to update approval status");
+
+    // Update UI locally
+    setRequests((prev) => prev.filter((r) => r.approvalId !== approvalId));
+    setActionReason((prev) => {
+      const copy = { ...prev };
+      delete copy[approvalId];
+      return copy;
+    });
+  } catch (err) {
+    alert("Error processing request: " + err.message);
+  } finally {
+    setProcessingId(null);
+  }
 };
 
-console.log("Data being sent:", dataToSend);
-    try {
-      const res = await fetch(`${API_BASE}/process/${approvalId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-
-         body: JSON.stringify(dataToSend),
-      });
-
-      if (!res.ok) throw new Error("Failed to update approval status");
-
-      // Update UI locally to remove/mark processed requests
-      setRequests((prev) => prev.filter((r) => r.approvalId !== approvalId));
-      setActionReason((prev) => {
-        const copy = { ...prev };
-        delete copy[approvalId];
-        return copy;
-      });
-    } catch (err) {
-      alert("Error processing request: " + err.message);
-    } finally {
-      setProcessingId(null);
-    }
-  };
 
   if (loading) return <p>Loading pending requests...</p>;
 

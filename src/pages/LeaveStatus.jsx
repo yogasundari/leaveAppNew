@@ -23,6 +23,7 @@ const LeaveStatus = () => {
 
     try {
       const data = await leaveService.getLeaveApprovalStatus(requestId);
+      console.log("Approval Status Data:", data);
       setApprovalStatus(data);
     } catch (error) {
       setError(error.message);
@@ -72,6 +73,7 @@ const LeaveStatus = () => {
           <tr>
             <th>Level</th>
             <th>Approver ID</th>
+             <th>Approver Name</th>
             <th>Status</th>
             <th>Reason</th>
             <th>Action Time</th>
@@ -81,7 +83,8 @@ const LeaveStatus = () => {
           {approvalStatus.map((item) => (
             <tr key={item.approvalFlowLevel}>
               <td>{item.approvalFlowLevel}</td>
-              <td>{item.empId}</td>
+               <td>{item.empId}</td>
+              <td>{item.empName || '-'}</td>
               <td>{renderStatusCell(item.status)}</td>
               <td>{item.reason || '-'}</td>
               <td>{leaveService.formatDate(item.actionTimestamp)}</td>
