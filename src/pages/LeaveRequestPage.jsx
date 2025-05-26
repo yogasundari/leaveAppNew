@@ -23,7 +23,7 @@ const LeaveRequestPage = () => {
     reason: '',
     hasClass: false,
     isHalfDay: false,
-    alterationMode: '',
+    alterationType: '',
     startTime: '',
     endTime: '',
     earnedDate: '',
@@ -40,7 +40,7 @@ const LeaveRequestPage = () => {
   const [notificationStatus, setNotificationStatus] = useState('');
   const [errors, setErrors] = useState([]);
   const [successMessage, setSuccessMessage] = useState('');
-  const [showAlterationMode, setShowAlterationMode] = useState(false); // Add this state
+  const [showAlterationType, setShowAlterationType] = useState(false); // Add this state
 
   // Handle form field changes
   const handleFieldChange = (field, value) => {
@@ -51,12 +51,12 @@ const LeaveRequestPage = () => {
     
     // Reset alteration mode visibility when hasClass changes
     if (field === 'hasClass') {
-      setShowAlterationMode(false);
-      if (value === 'no') {
+      setShowAlterationType(false);
+      if (value === false) {
         // Clear alteration-related fields when "No" is selected
         setFormData(prev => ({
           ...prev,
-          alterationMode: '',
+          alterationType: '',
           classPeriod: '',
           subjectCode: '',
           subjectName: '',
@@ -74,7 +74,7 @@ const LeaveRequestPage = () => {
 
   // Handle move to alteration button click
   const handleMoveToAlteration = () => {
-    setShowAlterationMode(true);
+    setShowAlterationType(true);
   };
 
   // Handle form submission
@@ -226,7 +226,7 @@ const LeaveRequestPage = () => {
     setNotificationStatus('');
     setErrors([]);
     setSuccessMessage('');
-    setShowAlterationMode(false); // Reset alteration mode visibility
+    setShowAlterationType(false); // Reset alteration mode visibility
   };
 
   return (
@@ -282,7 +282,7 @@ const LeaveRequestPage = () => {
           onChange={handleFieldChange} 
           onSendNotification={handleSendNotification}
           notificationStatus={notificationStatus}
-          showAlterationMode={showAlterationMode}
+          showAlterationType={showAlterationType}
           onMoveToAlteration={handleMoveToAlteration}
         />
 

@@ -129,33 +129,36 @@ const [leaveTypes, setLeaveTypes] = useState([]);
   );
 };
 
-export const HalfDaySection = ({ formData, onChange }) => {
-  const halfDayOptions = [
-    { value: true, label: 'Yes' },
-    { value: false, label: 'No' },
-  ];
 
-  if (!['CL', 'ML', 'EL', 'Vacation', 'RH', 'Late'].includes(formData.leaveType)) {
-    return null;
-  }
+export const ClassSection = ({ formData, onChange, onMoveToAlteration }) => {
+  const hasClassOptions = [
+    { value: true, label: 'Yes' },
+    { value: false, label: 'No' }
+  ];
 
   return (
     <FormGroup>
-      <FormLabel>Is it Half Day?</FormLabel>
+      <FormLabel>Do you have a class?</FormLabel>
       <RadioGroup
-        name="hasHalfDay"
-        value={formData.hasHalfDay}
+        name="hasClass"
+        value={formData.hasClass}
         onChange={(e) => {
           const boolValue = e.target.value === 'true';
-          onChange('hasHalfDay', boolValue);
+          onChange('hasClass', boolValue);
+          if (!boolValue) {
+            onChange('alterationMode', '');
+          }
         }}
-        options={halfDayOptions}
+        options={hasClassOptions}
       />
+      {formData.hasClass && (
+        <button type="button" onClick={onMoveToAlteration}>
+          Move to Alteration
+        </button>
+      )}
     </FormGroup>
   );
 };
-
-
 export const TimeSection = ({ formData, onChange }) => {
   if (!['Late', 'Permission'].includes(formData.leaveType)) {
     return null;
@@ -203,36 +206,6 @@ export const CompoffSection = ({ formData, onChange }) => {
   );
 };
 
-export const ClassSection = ({ formData, onChange, onMoveToAlteration }) => {
-  const hasClassOptions = [
-    { value: true, label: 'Yes' },
-    { value: false, label: 'No' },
-  ];
-
-  return (
-    <FormGroup>
-      <FormLabel>Do you have a class?</FormLabel>
-      <RadioGroup
-        name="hasClass"
-        value={formData.hasClass}
-        onChange={(e) => {
-          const boolValue = e.target.value === 'true';
-          onChange('hasClass', boolValue);
-          if (!boolValue) {
-            onChange('alterationMode', '');
-          }
-        }}
-        options={hasClassOptions}
-      />
-
-      {formData.hasClass && (
-        <button type="button" onClick={onMoveToAlteration}>
-          Move to Alteration
-        </button>
-      )}
-    </FormGroup>
-  );
-};
 
 
 
