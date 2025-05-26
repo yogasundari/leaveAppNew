@@ -159,28 +159,33 @@ const data = await response.text(); // plain text response
 
   // Upload document
   async uploadDocument(file) {
-    try {
-      const formData = new FormData();
-      formData.append('document', file);
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
 
-      const response = await fetch(`${this.baseURL}/documents/upload`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.getAuthToken()}`,
-        },
-        body: formData,
-      });
+    const response = await fetch(`${this.baseURL}/leave-request/upload-file`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.getAuthToken()}`,
+      },
+      body: formData,
+    });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error uploading document:', error);
-      throw error;
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    const fileUrl = await response.text();  // <-- get plain text response
+
+    console.log('UploadedfileURL:', fileUrl); // Log the URL string
+
+    return fileUrl;  // return the URL string directly
+  } catch (error) {
+    console.error('Error uploading document:', error);
+    throw error;
   }
+}
+
 
   // Extract request ID from message
   extractRequestIdFromMessage(message) {

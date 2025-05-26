@@ -1,5 +1,7 @@
 // components/leave/LeaveFormSections.js
 import React from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';    
 import LeaveRequestService from '../../services/leaveRequestService';     
 import {
@@ -17,6 +19,9 @@ export const BasicInfoSection = ({ formData, onChange }) => {
 const [leaveTypes, setLeaveTypes] = useState([]);
   const [isLoadingLeaveTypes, setIsLoadingLeaveTypes] = useState(true);
   const [leaveTypesError, setLeaveTypesError] = useState('');
+const [uploading, setUploading] = useState(false);
+const [uploadError, setUploadError] = useState('');
+
 // Fetch leave types on component mount
   useEffect(() => {
     const fetchLeaveTypes = async () => {
@@ -46,6 +51,8 @@ const [leaveTypes, setLeaveTypes] = useState([]);
 
     fetchLeaveTypes();
   }, []);
+   const selectedLeaveType = leaveTypes.find((lt) => lt.value === formData.leaveTypeId);
+   
   return (
     <>
       <FormGroup>
@@ -72,31 +79,105 @@ const [leaveTypes, setLeaveTypes] = useState([]);
           required
         />
       </FormGroup>
-<FormGroup>
-  <FormLabel required>Leave Type</FormLabel>
-
-  {leaveTypesError && (
-    <div className="error-message" style={{ color: 'red', fontSize: '12px', marginBottom: '5px' }}>
-      {leaveTypesError}
-    </div>
-  )}
-
-  <FormSelect
-    value={formData.leaveTypeId ?? ''}  // Ensure value is not undefined
-    onChange={(e) => onChange('leaveTypeId', Number(e.target.value))}  // Explicitly convert to number
-    options={leaveTypes}  // Should be array like [{ value: 1, label: 'Casual Leave (CL)' }, ...]
-    required
-    disabled={isLoadingLeaveTypes}
-    placeholder={isLoadingLeaveTypes ? "Loading leave types..." : "Select Leave Type"}
-  />
-</FormGroup>
+      
       <FormGroup>
-        <FormLabel>Upload Document</FormLabel>
-        <FormInput
-          type="file"
-          onChange={(e) => onChange('document', e.target.files[0])}
+        <FormLabel required>Leave Type</FormLabel>
+        {leaveTypesError && (
+          <div className="error-message" style={{ color: 'red', fontSize: '12px', marginBottom: '5px' }}>
+            {leaveTypesError}
+          </div>
+        )}
+        <FormSelect
+          value={formData.leaveTypeId ?? ''}
+          onChange={(e) => onChange('leaveTypeId', Number(e.target.value))}
+          options={leaveTypes}
+          required
+          disabled={isLoadingLeaveTypes}
+          placeholder={isLoadingLeaveTypes ? "Loading leave types..." : "Select Leave Type"}
         />
       </FormGroup>
+
+      {/* ✅ Conditional fields based on leave type */}
+      {selectedLeaveType?.label === 'Compensatory Leave' && (
+        <FormGroup>
+          <FormLabel required>Earned Date</FormLabel>
+          <FormInput
+            type="date"
+            value={formData.earnedDate}
+            onChange={(e) => onChange('earnedDate', e.target.value)}
+            required
+          />
+        </FormGroup>
+      )}
+
+      {['Permission', 'Late'].includes(selectedLeaveType?.label) && (
+        <>
+          <FormGroup>
+            <FormLabel required>Start Time</FormLabel>
+            <FormInput
+              type="time"
+              value={formData.startTime}
+              onChange={(e) => onChange('startTime', e.target.value)}
+              required
+            />
+          </FormGroup>
+          <FormGroup>
+            <FormLabel required>End Time</FormLabel>
+            <FormInput
+              type="time"
+              value={formData.endTime}
+              onChange={(e) => onChange('endTime', e.target.value)}
+              required
+            />
+          </FormGroup>
+        </>
+      )}
+<FormGroup>
+  <FormLabel>Upload Document</FormLabel>
+  <FormInput
+    type="file"
+    onChange={(e) => onChange('documentFile', e.target.files[0])} // store raw file temporarily
+  />
+  <button
+  type="button"
+  disabled={uploading}
+  onClick={async () => {
+    if (!formData.documentFile) {
+      alert('Please select a file before uploading.');
+      return;
+    }
+
+    setUploading(true);
+    setUploadError('');
+
+    try {
+      const uploadedUrl = await LeaveRequestService.uploadDocument(formData.documentFile);
+
+      // ✅ Save the uploaded URL in local storage
+      localStorage.setItem('uploadedDocumentUrl', uploadedUrl);
+
+      // ✅ Optionally store in formData (if needed for immediate use)
+      onChange('documentUrl', uploadedUrl);
+
+      console.log('Uploaded URL:', uploadedUrl); // ✅ Now this should be correct
+
+      alert('Document uploaded successfully!');
+    } catch (error) {
+      setUploadError('Failed to upload document. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  }}
+>
+  {uploading ? 'Uploading...' : 'Upload'}
+</button>
+
+
+  {uploadError && <div style={{ color: 'red', marginTop: '5px' }}>{uploadError}</div>}
+</FormGroup>
+
+
+
 
       <FormGroup>
         <FormLabel required>Reason</FormLabel>
@@ -115,7 +196,20 @@ export const ClassSection = ({ formData, onChange, onMoveToAlteration }) => {
     { value: true, label: 'Yes' },
     { value: false, label: 'No' }
   ];
+const navigate = useNavigate();
 
+ const handleGoToAlteration = async () => {
+    try {
+      // Call API to save draft leave request
+      await LeaveRequestService.createDraftLeaveRequest(formData);
+
+      // After successful save, redirect to alteration page
+      navigate('/alteration');
+    } catch (error) {
+      console.error('Failed to save draft leave request:', error);
+      alert('Failed to save draft. Please try again.');
+    }
+  };
   return (
     <FormGroup>
       <FormLabel>Do you have a class?</FormLabel>
@@ -132,7 +226,7 @@ export const ClassSection = ({ formData, onChange, onMoveToAlteration }) => {
         options={hasClassOptions}
       />
       {formData.hasClass && (
-        <button type="button" onClick={onMoveToAlteration}>
+        <button type="button" onClick={handleGoToAlteration}>
           Move to Alteration
         </button>
       )}
@@ -154,7 +248,7 @@ export const HalfDaySection = ({ formData, onChange }) => {
         name="halfDayType"
         value={formData.halfDayType}
         onChange={(e) => {
-          const boolValue = e.target.value === true;
+          const boolValue = e.target.value === 'true';
           onChange('halfDayType', boolValue);
         }}
         options={halfDayOptions}

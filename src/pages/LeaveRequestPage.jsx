@@ -25,7 +25,7 @@ const LeaveRequestPage = () => {
     startTime: '',
     endTime: '',
     earnedDate: '',
-    document: null,
+    fileUpload: null,
     classPeriod: '',
     subjectCode: '',
     subjectName: '',
@@ -82,16 +82,20 @@ const LeaveRequestPage = () => {
         setIsSubmitting(false);
         return;
       }
+const uploadedUrl = localStorage.getItem('uploadedDocumentUrl');
+console.log('Uploaded Document URL:', uploadedUrl);
 
-      const leaveRequestData = {
-        empId: formData.empId,
-        leaveTypeId: formData.leaveTypeId,
-        isHalfDay: formData.isHalfDay,
-        startDate: formData.startDate,
-        endDate: formData.endDate,
-        reason: formData.reason,
-        hasClass: formData.hasClass
-      };
+const leaveRequestData = {
+  empId: formData.empId,
+  leaveTypeId: formData.leaveTypeId,
+  isHalfDay: formData.isHalfDay,
+  startDate: formData.startDate,
+  endDate: formData.endDate,
+  reason: formData.reason,
+  hasClass: formData.hasClass,
+  fileUpload: uploadedUrl || null, // Assigns null if no file uploaded
+};
+
 
       if (['Permission', 'Late'].includes(formData.leaveType)) {
         if (formData.startTime) leaveRequestData.startTime = formData.startTime;
@@ -137,7 +141,7 @@ const LeaveRequestPage = () => {
       startTime: '',
       endTime: '',
       earnedDate: '',
-      document: null,
+      fileUpload: null,
       classPeriod: '',
       subjectCode: '',
       subjectName: '',

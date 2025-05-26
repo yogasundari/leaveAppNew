@@ -11,6 +11,7 @@ import Logout from "./pages/Logout";
 import LeaveHistory from "./pages/LeaveHistory";
 import Approval from "./pages/Approval";
 import LeaveRequestPage from "./pages/LeaveRequestPage";
+import AlterationPage from "./pages/AlterationPage";
 
 
 
@@ -20,6 +21,7 @@ export default function App() {
 
       <Route path="/register" element={<Register />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/alteration" element={<ErrorBoundary><AlterationPage /></ErrorBoundary>} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/dashboard/*" element={
