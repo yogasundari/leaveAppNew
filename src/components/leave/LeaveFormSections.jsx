@@ -1,5 +1,7 @@
 // components/leave/LeaveFormSections.js
 import React from 'react';
+import { useState, useEffect } from 'react';    
+import LeaveRequestService from '../../services/leaveRequestService';     
 import {
   FormGroup,
   FormLabel,
@@ -12,17 +14,44 @@ import {
 } from '../form/FormComponents';
 
 export const BasicInfoSection = ({ formData, onChange }) => {
-  const leaveTypeOptions = [
-    { value: 'CL', label: 'Casual Leave (CL)' },
-    { value: 'ML', label: 'Medical Leave (ML)' },
-    { value: 'EL', label: 'Earned Leave (EL)' },
-    { value: 'Vacation', label: 'Vacation' },
-    { value: 'Permission', label: 'Permission' },
-    { value: 'Late', label: 'Late' },
-    { value: 'RH', label: 'Regional Holiday (RH)' },
-    { value: 'Compoff', label: 'Compensatory Leave' }
-  ];
+const [leaveTypes, setLeaveTypes] = useState([]);
+  const [isLoadingLeaveTypes, setIsLoadingLeaveTypes] = useState(true);
+  const [leaveTypesError, setLeaveTypesError] = useState('');
 
+
+  const staffTypeOptions = [
+  { value: 'TEACHING', label: 'Teaching' },
+  { value: 'NON_TEACHING', label: 'Non Teaching' }
+];
+// Fetch leave types on component mount
+  useEffect(() => {
+    const fetchLeaveTypes = async () => {
+      try {
+        setIsLoadingLeaveTypes(true);
+        const types = await LeaveRequestService.getAllLeaveTypes();
+        setLeaveTypes(types);
+        setLeaveTypesError('');
+      } catch (error) {
+        console.error('Error fetching leave types:', error);
+        setLeaveTypesError('Failed to load leave types');
+        // Fallback to default leave types with integer IDs
+        setLeaveTypes([
+          { value: 1, label: 'Casual Leave (CL)' },
+          { value: 2, label: 'Medical Leave (ML)' },
+          { value: 3, label: 'Earned Leave (EL)' },
+          { value: 4, label: 'Vacation' },
+          { value: 5, label: 'Permission' },
+          { value: 6, label: 'Late' },
+          { value: 7, label: 'Regional Holiday (RH)' },
+          { value: 8, label: 'Compensatory Leave' }
+        ]);
+      } finally {
+        setIsLoadingLeaveTypes(false);
+      }
+    };
+
+    fetchLeaveTypes();
+  }, []);
   return (
     <>
       <FormGroup>
@@ -49,16 +78,35 @@ export const BasicInfoSection = ({ formData, onChange }) => {
           required
         />
       </FormGroup>
+         <FormGroup>
+  <FormLabel required>Staff Type</FormLabel>
+  <FormSelect
+    value={formData.staffType || ''}
+    onChange={(e) => onChange('staffType', e.target.value)}
+    options={staffTypeOptions}
+    placeholder="Select Staff Type"
+    required
+  />
+</FormGroup>
+<FormGroup>
+  <FormLabel required>Leave Type</FormLabel>
 
-      <FormGroup>
-        <FormLabel required>Leave Type</FormLabel>
-        <FormSelect
-          value={formData.leaveType}
-          onChange={(e) => onChange('leaveType', e.target.value)}
-          options={leaveTypeOptions}
-          required
-        />
-      </FormGroup>
+  {leaveTypesError && (
+    <div className="error-message" style={{ color: 'red', fontSize: '12px', marginBottom: '5px' }}>
+      {leaveTypesError}
+    </div>
+  )}
+
+  <FormSelect
+    value={formData.leaveTypeId ?? ''}  // Ensure value is not undefined
+    onChange={(e) => onChange('leaveTypeId', Number(e.target.value))}  // Explicitly convert to number
+    options={leaveTypes}  // Should be array like [{ value: 1, label: 'Casual Leave (CL)' }, ...]
+    required
+    disabled={isLoadingLeaveTypes}
+    placeholder={isLoadingLeaveTypes ? "Loading leave types..." : "Select Leave Type"}
+  />
+</FormGroup>
+
 
       <FormGroup>
         <FormLabel>Upload Document</FormLabel>
@@ -83,8 +131,8 @@ export const BasicInfoSection = ({ formData, onChange }) => {
 
 export const HalfDaySection = ({ formData, onChange }) => {
   const halfDayOptions = [
-    { value: 'yes', label: 'Yes' },
-    { value: 'no', label: 'No' }
+    { value: true, label: 'Yes' },
+    { value: false, label: 'No' },
   ];
 
   if (!['CL', 'ML', 'EL', 'Vacation', 'RH', 'Late'].includes(formData.leaveType)) {
@@ -97,12 +145,16 @@ export const HalfDaySection = ({ formData, onChange }) => {
       <RadioGroup
         name="hasHalfDay"
         value={formData.hasHalfDay}
-        onChange={(e) => onChange('hasHalfDay', e.target.value)}
+        onChange={(e) => {
+          const boolValue = e.target.value === 'true';
+          onChange('hasHalfDay', boolValue);
+        }}
         options={halfDayOptions}
       />
     </FormGroup>
   );
 };
+
 
 export const TimeSection = ({ formData, onChange }) => {
   if (!['Late', 'Permission'].includes(formData.leaveType)) {
@@ -151,10 +203,10 @@ export const CompoffSection = ({ formData, onChange }) => {
   );
 };
 
-export const ClassSection = ({ formData, onChange }) => {
+export const ClassSection = ({ formData, onChange, onMoveToAlteration }) => {
   const hasClassOptions = [
-    { value: 'yes', label: 'Yes' },
-    { value: 'no', label: 'No' }
+    { value: true, label: 'Yes' },
+    { value: false, label: 'No' },
   ];
 
   return (
@@ -164,16 +216,25 @@ export const ClassSection = ({ formData, onChange }) => {
         name="hasClass"
         value={formData.hasClass}
         onChange={(e) => {
-          onChange('hasClass', e.target.value);
-          if (e.target.value === 'no') {
+          const boolValue = e.target.value === 'true';
+          onChange('hasClass', boolValue);
+          if (!boolValue) {
             onChange('alterationMode', '');
           }
         }}
         options={hasClassOptions}
       />
+
+      {formData.hasClass && (
+        <button type="button" onClick={onMoveToAlteration}>
+          Move to Alteration
+        </button>
+      )}
     </FormGroup>
   );
 };
+
+
 
 export const AlterationSection = ({ formData, onChange, onSendNotification, notificationStatus, showAlterationMode, onMoveToAlteration }) => {
   if (formData.hasClass !== 'yes') {

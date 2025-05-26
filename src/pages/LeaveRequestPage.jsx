@@ -19,9 +19,10 @@ const LeaveRequestPage = () => {
     startDate: '',
     endDate: '',
     leaveType: 'CL',
+    leaveTypeId: 1, // Add this field
     reason: '',
-    hasClass: 'no',
-    hasHalfDay: 'no',
+    hasClass: false,
+    isHalfDay: false,
     alterationMode: '',
     startTime: '',
     endTime: '',
@@ -92,38 +93,74 @@ const LeaveRequestPage = () => {
         return;
       }
 
-      // Prepare leave request data
+      // Prepare clean leave request data - only send required fields
       const leaveRequestData = {
         empId: formData.empId,
+        leaveTypeId: formData.leaveTypeId,
+        isHalfDay: formData.isHalfDay, // Note: using 'ishalfDay' as per your requirement
         startDate: formData.startDate,
         endDate: formData.endDate,
-        leaveType: formData.leaveType,
         reason: formData.reason,
-        hasHalfDay: ['CL', 'ML', 'EL', 'Vacation', 'RH', 'Late'].includes(formData.leaveType)
-          ? formData.hasHalfDay
-          : null,
-        hasClass: formData.hasClass,
-        alterationMode: formData.hasClass === 'yes' ? formData.alterationMode : null,
-        startTime: ['Permission', 'Late'].includes(formData.leaveType) ? formData.startTime : null,
-        endTime: ['Permission', 'Late'].includes(formData.leaveType) ? formData.endTime : null,
-        earnedDate: formData.leaveType === 'Compoff' ? formData.earnedDate : null,
-        medicalFile: formData.leaveType === 'ML' ? formData.document : null,
-        classPeriod: formData.alterationMode ? formData.classPeriod : null,
-        subjectCode: formData.alterationMode ? formData.subjectCode : null,
-        subjectName: formData.alterationMode ? formData.subjectName : null,
-        moodleLink: formData.alterationMode === 'Moodle Activity' ? formData.moodleLink : null,
-        alteredFaculty: formData.alterationMode === 'Staff Alteration' ? formData.alteredFaculty : null,
-        notificationStatus: formData.alterationMode === 'Staff Alteration' ? notificationStatus : null,
+        hasClass: formData.hasClass
       };
 
-      // Upload document if present
+      // Add conditional fields only if they have values
+      if (['Permission', 'Late'].includes(formData.leaveType) && formData.startTime) {
+        leaveRequestData.startTime = formData.startTime;
+      }
+
+      if (['Permission', 'Late'].includes(formData.leaveType) && formData.endTime) {
+        leaveRequestData.endTime = formData.endTime;
+      }
+
+      if (formData.leaveType === 'Compoff' && formData.earnedDate) {
+        leaveRequestData.earnedDate = formData.earnedDate;
+      }
+
+      // Add class-related fields only if hasClass is true
+      if (formData.hasClass === true) {
+        if (formData.alterationMode) {
+          leaveRequestData.alterationMode = formData.alterationMode;
+        }
+        if (formData.classPeriod) {
+          leaveRequestData.classPeriod = formData.classPeriod;
+        }
+        if (formData.subjectCode) {
+          leaveRequestData.subjectCode = formData.subjectCode;
+        }
+        if (formData.subjectName) {
+          leaveRequestData.subjectName = formData.subjectName;
+        }
+        
+        // Staff alteration specific fields
+        if (formData.alterationMode === 'Staff Alteration' && formData.alteredFaculty) {
+          leaveRequestData.alteredFaculty = formData.alteredFaculty;
+          if (notificationStatus) {
+            leaveRequestData.notificationStatus = notificationStatus;
+          }
+        }
+        
+        // Moodle activity specific fields
+        if (formData.alterationMode === 'Moodle Activity' && formData.moodleLink) {
+          leaveRequestData.moodleLink = formData.moodleLink;
+        }
+      }
+
+      // Handle file upload separately if document exists
       if (formData.document) {
         const uploadResult = await leaveRequestService.uploadDocument(formData.document);
         leaveRequestData.documentUrl = uploadResult.url;
       }
 
+      // Add medical file for ML leave type
+      if (formData.leaveType === 'ML' && formData.document) {
+        leaveRequestData.medicalFile = formData.document;
+      }
+
+      console.log('Clean leave request data being sent:', leaveRequestData);
+
       // Submit leave request
-      const result = await leaveRequestService.submitLeaveRequest(leaveRequestData);
+      const result = await leaveRequestService.createDraftLeaveRequest(leaveRequestData);
       
       setSuccessMessage('Leave request submitted successfully!');
       console.log('Leave request submitted:', result);
@@ -171,9 +208,10 @@ const LeaveRequestPage = () => {
       startDate: '',
       endDate: '',
       leaveType: 'CL',
+      leaveTypeId: 1,
       reason: '',
-      hasClass: 'no',
-      hasHalfDay: 'no',
+      hasClass: false,
+      isHalfDay: false,
       alterationMode: '',
       startTime: '',
       endTime: '',
