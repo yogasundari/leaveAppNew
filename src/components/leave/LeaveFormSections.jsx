@@ -17,12 +17,6 @@ export const BasicInfoSection = ({ formData, onChange }) => {
 const [leaveTypes, setLeaveTypes] = useState([]);
   const [isLoadingLeaveTypes, setIsLoadingLeaveTypes] = useState(true);
   const [leaveTypesError, setLeaveTypesError] = useState('');
-
-
-  const staffTypeOptions = [
-  { value: 'TEACHING', label: 'Teaching' },
-  { value: 'NON_TEACHING', label: 'Non Teaching' }
-];
 // Fetch leave types on component mount
   useEffect(() => {
     const fetchLeaveTypes = async () => {
@@ -78,16 +72,6 @@ const [leaveTypes, setLeaveTypes] = useState([]);
           required
         />
       </FormGroup>
-         <FormGroup>
-  <FormLabel required>Staff Type</FormLabel>
-  <FormSelect
-    value={formData.staffType || ''}
-    onChange={(e) => onChange('staffType', e.target.value)}
-    options={staffTypeOptions}
-    placeholder="Select Staff Type"
-    required
-  />
-</FormGroup>
 <FormGroup>
   <FormLabel required>Leave Type</FormLabel>
 
@@ -106,8 +90,6 @@ const [leaveTypes, setLeaveTypes] = useState([]);
     placeholder={isLoadingLeaveTypes ? "Loading leave types..." : "Select Leave Type"}
   />
 </FormGroup>
-
-
       <FormGroup>
         <FormLabel>Upload Document</FormLabel>
         <FormInput
@@ -128,8 +110,6 @@ const [leaveTypes, setLeaveTypes] = useState([]);
     </>
   );
 };
-
-
 export const ClassSection = ({ formData, onChange, onMoveToAlteration }) => {
   const hasClassOptions = [
     { value: true, label: 'Yes' },
@@ -159,6 +139,31 @@ export const ClassSection = ({ formData, onChange, onMoveToAlteration }) => {
     </FormGroup>
   );
 };
+// LeaveFormSections.jsx (or wherever you're defining it)
+
+export const HalfDaySection = ({ formData, onChange }) => {
+  const halfDayOptions = [
+    { value: true, label: 'yes' },
+    { value: false, label: 'no' }
+  ];
+
+  return (
+    <FormGroup>
+      <FormLabel>Select Half Day Type</FormLabel>
+      <RadioGroup
+        name="halfDayType"
+        value={formData.halfDayType}
+        onChange={(e) => {
+          const boolValue = e.target.value === true;
+          onChange('halfDayType', boolValue);
+        }}
+        options={halfDayOptions}
+      />
+    </FormGroup>
+  );
+};
+
+
 export const TimeSection = ({ formData, onChange }) => {
   if (!['Late', 'Permission'].includes(formData.leaveType)) {
     return null;
@@ -209,109 +214,3 @@ export const CompoffSection = ({ formData, onChange }) => {
 
 
 
-export const AlterationSection = ({ formData, onChange, onSendNotification, notificationStatus, showAlterationMode, onMoveToAlteration }) => {
-  if (formData.hasClass !== 'yes') {
-    return null;
-  }
-
-  const alterationOptions = [
-    { value: 'Moodle Activity', label: 'Moodle Activity' },
-    { value: 'Staff Alteration', label: 'Staff Alteration' }
-  ];
-
-  return (
-    <>
-      {!showAlterationMode ? (
-        <FormGroup>
-          <Button
-            type="button"
-            onClick={onMoveToAlteration}
-            variant="secondary"
-          >
-            Move to Alteration
-          </Button>
-        </FormGroup>
-      ) : (
-        <FormGroup>
-          <FormLabel required>Alteration Mode</FormLabel>
-          <FormSelect
-            value={formData.alterationMode}
-            onChange={(e) => onChange('alterationMode', e.target.value)}
-            options={alterationOptions}
-            placeholder="Select Alteration Mode"
-            required
-          />
-        </FormGroup>
-      )}
-
-      {formData.alterationMode && (
-        <>
-          <FormGroup>
-            <FormLabel required>Class Period</FormLabel>
-            <FormInput
-              value={formData.classPeriod}
-              onChange={(e) => onChange('classPeriod', e.target.value)}
-              required
-              placeholder="e.g., Period 1, Period 2-3"
-            />
-          </FormGroup>
-
-          <FormGroup>
-            <FormLabel required>Subject Code</FormLabel>
-            <FormInput
-              value={formData.subjectCode}
-              onChange={(e) => onChange('subjectCode', e.target.value)}
-              required
-              placeholder="e.g., CSE101"
-            />
-          </FormGroup>
-
-          <FormGroup>
-            <FormLabel required>Subject Name</FormLabel>
-            <FormInput
-              value={formData.subjectName}
-              onChange={(e) => onChange('subjectName', e.target.value)}
-              required
-              placeholder="e.g., Data Structures"
-            />
-          </FormGroup>
-        </>
-      )}
-
-      {formData.alterationMode === 'Moodle Activity' && (
-        <FormGroup>
-          <FormLabel>Moodle Link</FormLabel>
-          <FormInput
-            type="url"
-            value={formData.moodleLink}
-            onChange={(e) => onChange('moodleLink', e.target.value)}
-            placeholder="https://moodle.example.com/..."
-          />
-        </FormGroup>
-      )}
-
-      {formData.alterationMode === 'Staff Alteration' && (
-        <>
-          <FormGroup>
-            <FormLabel required>Altered Faculty Email</FormLabel>
-            <FormInput
-              type="email"
-              value={formData.alteredFaculty}
-              onChange={(e) => onChange('alteredFaculty', e.target.value)}
-              required
-              placeholder="faculty@example.com"
-            />
-          </FormGroup>
-          <Button
-            type="button"
-            onClick={onSendNotification}
-            variant="secondary"
-          >
-            Send Notification to Faculty
-          </Button>
-          <NotificationStatus status={notificationStatus} />
-        </>
-      )}
-    </>
-  );
-};

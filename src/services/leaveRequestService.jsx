@@ -194,7 +194,6 @@ const data = await response.text(); // plain text response
     const errors = [];
 
     if (!data.empId) errors.push('Employee ID is required');
-    if (!data.staffType) errors.push('Staff type is required');
     if (!data.startDate) errors.push('Start date is required');
     if (!data.endDate) errors.push('End date is required');
     if (!data.leaveType) errors.push('Leave type is required');
