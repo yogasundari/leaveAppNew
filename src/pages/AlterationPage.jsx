@@ -19,6 +19,7 @@ export default function AlterationPage() {
   const [notificationStatus, setNotificationStatus] = useState('');
   const [statusCheckEnabled, setStatusCheckEnabled] = useState(false);
   const [canSubmitLeave, setCanSubmitLeave] = useState(false);
+  const [alterationsSubmitted, setAlterationsSubmitted] = useState(false);
 
   const token = localStorage.getItem('token');
 
@@ -29,6 +30,60 @@ export default function AlterationPage() {
       setRequestId(parseInt(storedRequestId, 10));
     }
   }, []);
+
+useEffect(() => {
+  let intervalId;
+
+  if (statusCheckEnabled && notificationStatus === 'PENDING' && requestId) {
+    console.log('🔄 Starting auto status check for request:', requestId);
+    console.log('🔄 Current status:', notificationStatus);
+
+    intervalId = setInterval(async () => {
+      try {
+        console.log('🔍 Auto-checking notification status for requestId:', requestId);
+        console.log('🔍 Current frontend status:', notificationStatus);
+
+        const statusArray = await leaveRequestService.checkNotificationStatus(requestId);
+        const status = Array.isArray(statusArray) && statusArray.length > 0 ? statusArray[0] : '';
+
+        console.log('📡 Backend returned status:', status);
+        console.log('📡 Status type:', typeof status);
+
+        if (status !== notificationStatus) {
+          console.log('✅ Status changed from', notificationStatus, 'to', status);
+          setNotificationStatus(status);
+
+          if (status === 'APPROVED') {
+            setCanSubmitLeave(true);
+            alert('✅ Great! The replacement faculty has approved your alteration. You can now submit your leave request.');
+            clearInterval(intervalId);
+          } else if (status === 'REJECTED') {
+            setCanSubmitLeave(false);
+            alert('❌ The replacement faculty has rejected your alteration request. Please contact them or choose a different faculty.');
+            clearInterval(intervalId);
+          }
+        } else {
+          console.log('⏳ Status unchanged, still:', status);
+        }
+      } catch (error) {
+        console.error('❌ Error auto-checking notification status:', error);
+        console.error('❌ Error details:', error.message);
+      }
+    }, 10000);
+
+    console.log('✅ Auto status check started, checking every 10 seconds');
+  } else {
+    console.log('❌ Auto check not started. statusCheckEnabled:', statusCheckEnabled, 'notificationStatus:', notificationStatus, 'requestId:', requestId);
+  }
+
+  return () => {
+    if (intervalId) {
+      console.log('🛑 Stopping auto status check');
+      clearInterval(intervalId);
+    }
+  };
+}, [statusCheckEnabled, notificationStatus, requestId]);
+
 
   const handleChange = (alterationId, field, value) => {
     setAlterations(prev => 
@@ -117,10 +172,21 @@ export default function AlterationPage() {
       console.log("Server response:", data);
       alert('All alterations submitted successfully');
       
+      setAlterationsSubmitted(true);
+      
       // Check if any alteration is STAFF_ALTERATION
       const hasStaffAlteration = alterations.some(alt => alt.alterationType === 'STAFF_ALTERATION');
+      const hasOnlyMoodleLink = alterations.every(alt => alt.alterationType === 'MOODLE_LINK');
+      
       if (hasStaffAlteration) {
+        // If there are staff alterations, enable notification status check
         setStatusCheckEnabled(true);
+        setCanSubmitLeave(false); // Keep disabled until approved
+        setNotificationStatus('PENDING'); // Set initial status
+      } else if (hasOnlyMoodleLink) {
+        // If only moodle alterations, enable submit leave request immediately
+        setCanSubmitLeave(true);
+        setStatusCheckEnabled(false);
       }
 
       return data;
@@ -135,8 +201,14 @@ export default function AlterationPage() {
       const status = await leaveRequestService.checkNotificationStatus(requestId);
       setNotificationStatus(status);
       
-      if (status === 'ACCEPTED') {
+      console.log("Notification status:", status);
+      
+      // Enable submit leave request only if status is APPROVED
+      if (status === 'APPROVED') {
         setCanSubmitLeave(true);
+        alert('Alteration approved! You can now submit your leave request.');
+      } else {
+        setCanSubmitLeave(false);
       }
     } catch (error) {
       console.error('Error checking notification status:', error);
@@ -157,10 +229,33 @@ export default function AlterationPage() {
       }
 
       alert('Leave request submitted successfully');
+      
+      // Reset the form state after successful submission
+      setCanSubmitLeave(false);
+      setStatusCheckEnabled(false);
+      setAlterationsSubmitted(false);
+      setNotificationStatus('');
+      
     } catch (error) {
       console.error('Error submitting leave request:', error);
       alert('Error submitting leave request');
     }
+  };
+
+  // Determine if submit leave request should be enabled
+  const shouldEnableSubmitLeave = () => {
+    if (!alterationsSubmitted) return false;
+    
+    const hasStaffAlteration = alterations.some(alt => alt.alterationType === 'STAFF_ALTERATION');
+    const hasOnlyMoodleLink = alterations.every(alt => alt.alterationType === 'MOODLE_LINK');
+    
+    if (hasOnlyMoodleLink) {
+      return true; // Enable immediately for moodle alterations
+    } else if (hasStaffAlteration) {
+      return notificationStatus === 'APPROVED'; // Enable only when approved for staff alterations
+    }
+    
+    return false;
   };
 
   return (
@@ -181,6 +276,7 @@ export default function AlterationPage() {
         <div className="bg-gray-100 p-2 rounded">
           <p className="text-sm text-gray-600">Request ID: {requestId}</p>
           <p className="text-sm text-gray-600">Total Alterations: {alterations.length}</p>
+          <p className="text-sm text-gray-600">Alterations Submitted: {alterationsSubmitted ? 'Yes' : 'No'}</p>
         </div>
       )}
 
@@ -208,6 +304,7 @@ export default function AlterationPage() {
                   value={alteration.alterationType}
                   onChange={(e) => handleChange(alteration.id, 'alterationType', e.target.value)}
                   className="block w-full border p-2 rounded mt-1"
+                  disabled={alterationsSubmitted}
                 >
                   <option value="MOODLE_LINK">Moodle Link</option>
                   <option value="STAFF_ALTERATION">Staff Alteration</option>
@@ -220,7 +317,8 @@ export default function AlterationPage() {
                 value={alteration.classDate} 
                 onChange={(e) => handleChange(alteration.id, 'classDate', e.target.value)}
                 placeholder="Class Date" 
-                className="w-full border p-2 rounded" 
+                className="w-full border p-2 rounded"
+                disabled={alterationsSubmitted}
               />
 
               <input 
@@ -228,7 +326,8 @@ export default function AlterationPage() {
                 value={alteration.classPeriod} 
                 onChange={(e) => handleChange(alteration.id, 'classPeriod', e.target.value)}
                 placeholder="Class Period" 
-                className="w-full border p-2 rounded" 
+                className="w-full border p-2 rounded"
+                disabled={alterationsSubmitted}
               />
 
               <input 
@@ -236,7 +335,8 @@ export default function AlterationPage() {
                 value={alteration.subjectCode} 
                 onChange={(e) => handleChange(alteration.id, 'subjectCode', e.target.value)}
                 placeholder="Subject Code" 
-                className="w-full border p-2 rounded" 
+                className="w-full border p-2 rounded"
+                disabled={alterationsSubmitted}
               />
 
               <input 
@@ -244,7 +344,8 @@ export default function AlterationPage() {
                 value={alteration.subjectName} 
                 onChange={(e) => handleChange(alteration.id, 'subjectName', e.target.value)}
                 placeholder="Subject Name" 
-                className="w-full border p-2 rounded" 
+                className="w-full border p-2 rounded"
+                disabled={alterationsSubmitted}
               />
 
               {alteration.alterationType === 'MOODLE_LINK' && (
@@ -253,7 +354,8 @@ export default function AlterationPage() {
                   value={alteration.moodleActivityLink} 
                   onChange={(e) => handleChange(alteration.id, 'moodleActivityLink', e.target.value)}
                   placeholder="Moodle Activity Link" 
-                  className="w-full border p-2 rounded" 
+                  className="w-full border p-2 rounded"
+                  disabled={alterationsSubmitted}
                 />
               )}
 
@@ -263,7 +365,8 @@ export default function AlterationPage() {
                   value={alteration.replacementEmpId} 
                   onChange={(e) => handleChange(alteration.id, 'replacementEmpId', e.target.value)}
                   placeholder="Replacement Emp ID" 
-                  className="w-full border p-2 rounded" 
+                  className="w-full border p-2 rounded"
+                  disabled={alterationsSubmitted}
                 />
               )}
             </div>
@@ -274,9 +377,14 @@ export default function AlterationPage() {
       <div className="flex flex-wrap gap-4 pt-4 border-t">
         <button 
           onClick={handleSubmitAlterations} 
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded transition-colors"
+          className={`px-6 py-2 rounded transition-colors ${
+            alterationsSubmitted 
+              ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
+              : 'bg-blue-600 hover:bg-blue-700 text-white'
+          }`}
+          disabled={alterationsSubmitted}
         >
-          Submit All Alterations ({alterations.length})
+          {alterationsSubmitted ? 'Alterations Submitted' : `Submit All Alterations (${alterations.length})`}
         </button>
 
         {statusCheckEnabled && (
@@ -288,23 +396,71 @@ export default function AlterationPage() {
           </button>
         )}
 
-        {canSubmitLeave && (
-          <button 
-            onClick={submitLeaveRequest} 
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition-colors"
-          >
-            Submit Leave Request
-          </button>
-        )}
-      </div>
 
-      {notificationStatus && (
+
+      {/* Auto-checking indicator for pending status */}
+      {statusCheckEnabled && notificationStatus === 'PENDING' && (
         <div className="bg-blue-50 border border-blue-200 rounded p-3">
-          <p className="text-blue-800">
-            <strong>Notification Status:</strong> {notificationStatus}
+          <div className="flex items-center gap-2">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+            <p className="text-blue-800 text-sm">
+              Waiting for replacement faculty approval... (Auto-checking every 15 seconds)
+            </p>
+          </div>
+          <p className="text-blue-600 text-xs mt-1">
+            The replacement faculty will receive a notification to approve your request.
           </p>
         </div>
       )}
+
+      {/* Notification status display */}
+      {notificationStatus && (
+        <div className={`border rounded p-3 ${
+          notificationStatus === 'APPROVED' 
+            ? 'bg-green-50 border-green-200' 
+            : notificationStatus === 'PENDING'
+            ? 'bg-yellow-50 border-yellow-200'
+            : 'bg-red-50 border-red-200'
+        }`}>
+          <p className={`${
+            notificationStatus === 'APPROVED' 
+              ? 'text-green-800' 
+              : notificationStatus === 'PENDING'
+              ? 'text-yellow-800'
+              : 'text-red-800'
+          }`}>
+            <strong>Notification Status:</strong> {notificationStatus}
+          </p>
+          {notificationStatus === 'PENDING' && (
+            <p className="text-yellow-700 text-sm mt-1">
+              Please wait for approval before submitting leave request.
+            </p>
+          )}
+          {notificationStatus === 'APPROVED' && (
+            <p className="text-green-700 text-sm mt-1">
+              ✅ Approved! You can now submit your leave request.
+            </p>
+          )}
+          {notificationStatus === 'REJECTED' && (
+            <p className="text-red-700 text-sm mt-1">
+              ❌ Request was rejected. Please contact the replacement faculty or choose a different one.
+            </p>
+          )}
+        </div>
+
+      )}
+              <button 
+          onClick={submitLeaveRequest} 
+          className={`px-6 py-2 rounded transition-colors ${
+            shouldEnableSubmitLeave()
+              ? 'bg-green-600 hover:bg-green-700 text-white'
+              : 'bg-gray-400 text-gray-600 cursor-not-allowed'
+          }`}
+          disabled={!shouldEnableSubmitLeave()}
+        >
+          Submit Leave Request
+        </button>
+      </div>
     </div>
   );
 }
