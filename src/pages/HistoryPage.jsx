@@ -12,7 +12,7 @@ function formatDate(dateStr) {
 }
 
 // LeaveCard component
-function LeaveCard({ leave, onViewStatus }) {
+function LeaveCard({ leave, onViewStatus, onWithdraw }) {
   const { requestId, leaveTypeName, startDate, endDate, status, reason, createdAt } = leave;
 
   const cardStyle = {
@@ -35,6 +35,9 @@ function LeaveCard({ leave, onViewStatus }) {
     PENDING: 'orange',
   };
 
+  // Only show withdraw button for PENDING status
+  const canWithdraw = status === 'PENDING';
+
   return (
     <div style={cardStyle}>
       <h3>
@@ -47,20 +50,36 @@ function LeaveCard({ leave, onViewStatus }) {
       <p><strong>Reason:</strong> {reason}</p>
       <small>Requested on: {formatDate(createdAt)}</small>
       <br />
-      <button
-        onClick={() => onViewStatus(leave)}
-        style={{
-          marginTop: '10px',
-          padding: '6px 12px',
-          backgroundColor: '#007bff',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer'
-        }}
-      >
-        View Status
-      </button>
+      <div style={{ marginTop: '10px', display: 'flex', gap: '10px' }}>
+        <button
+          onClick={() => onViewStatus(leave)}
+          style={{
+            padding: '6px 12px',
+            backgroundColor: '#007bff',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          View Status
+        </button>
+        {canWithdraw && (
+          <button
+            onClick={() => onWithdraw(leave)}
+            style={{
+              padding: '6px 12px',
+              backgroundColor: '#dc3545',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            Withdraw
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -73,8 +92,13 @@ export default function HistoryPage() {
   const [statusDetails, setStatusDetails] = useState(null);
   const [statusLoading, setStatusLoading] = useState(false);
   const [statusError, setStatusError] = useState(null);
+  const [withdrawing, setWithdrawing] = useState(false);
 
   useEffect(() => {
+    loadLeaveHistory();
+  }, []);
+
+  const loadLeaveHistory = () => {
     const token = localStorage.getItem('token');
     fetch('http://localhost:8080/api/leave-request/leave-history', {
       headers: {
@@ -94,7 +118,7 @@ export default function HistoryPage() {
         setError(err.message);
         setLoading(false);
       });
-  }, []);
+  };
 
   const handleViewStatus = (leave) => {
     setSelectedLeave(leave);
@@ -122,6 +146,38 @@ export default function HistoryPage() {
       });
   };
 
+  const handleWithdraw = (leave) => {
+    if (!window.confirm(`Are you sure you want to withdraw your ${leave.leaveTypeName} leave request?`)) {
+      return;
+    }
+
+    setWithdrawing(true);
+    const token = localStorage.getItem('token');
+    
+    fetch(`http://localhost:8080/api/leave-request/withdraw/${leave.requestId}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to withdraw leave request');
+        return res.text(); // Use text() in case response is empty
+      })
+      .then(() => {
+        alert('Leave request withdrawn successfully!');
+        // Reload the leave history to reflect the changes
+        loadLeaveHistory();
+      })
+      .catch((err) => {
+        alert(`Error withdrawing leave request: ${err.message}`);
+      })
+      .finally(() => {
+        setWithdrawing(false);
+      });
+  };
+
   const closeModal = () => {
     setSelectedLeave(null);
     setStatusDetails(null);
@@ -135,8 +191,28 @@ export default function HistoryPage() {
   return (
     <div style={{ padding: '20px' }}>
       <h2>Leave Request History</h2>
+      {withdrawing && (
+        <div style={{ 
+          position: 'fixed', 
+          top: '50%', 
+          left: '50%', 
+          transform: 'translate(-50%, -50%)',
+          backgroundColor: 'rgba(0,0,0,0.8)', 
+          color: 'white', 
+          padding: '20px', 
+          borderRadius: '8px',
+          zIndex: 1001
+        }}>
+          Processing withdrawal...
+        </div>
+      )}
       {leaveHistory.map((leave) => (
-        <LeaveCard key={leave.requestId} leave={leave} onViewStatus={handleViewStatus} />
+        <LeaveCard 
+          key={leave.requestId} 
+          leave={leave} 
+          onViewStatus={handleViewStatus}
+          onWithdraw={handleWithdraw}
+        />
       ))}
 
       {/* Modal */}

@@ -62,6 +62,26 @@ class LeaveService {
     }
   }
 
+  // Withdraw a leave request
+  async withdrawLeaveRequest(requestId) {
+    try {
+      const response = await fetch(`${this.baseURL}/leave-request/withdraw/${requestId}`, {
+        method: 'POST',
+        headers: this.getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to withdraw leave request: ${response.status} ${response.statusText}`);
+      }
+
+     const message = await response.text();
+    return { success: true, message };
+    } catch (error) {
+      console.error('Error withdrawing leave request:', error);
+      throw error;
+    }
+  }
+
   // Utility function to format dates
   formatDate(dateStr) {
     if (!dateStr) return '';
