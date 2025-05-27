@@ -21,16 +21,10 @@ const LeaveRequestPage = () => {
     reason: '',
     hasClass: false,
     isHalfDay: false,
-    alterationMode: '',
     startTime: '',
     endTime: '',
     earnedDate: '',
     fileUpload: null,
-    classPeriod: '',
-    subjectCode: '',
-    subjectName: '',
-    moodleLink: '',
-    alteredFaculty: '',
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);

@@ -47,7 +47,6 @@ class LeaveRequestService {
   }
 }
 
-
   // Create draft leave request
   async createDraftLeaveRequest(leaveRequestData) {
     try {
@@ -70,16 +69,25 @@ class LeaveRequestService {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-const data = await response.text(); // plain text response
-    console.log("Server response:", data);
 
-    const match = data.match(/ID:\s*(\d+)/);
-    const requestId = match ? match[1] : null;
+      const data = await response.text(); // plain text response
+      console.log("Server response:", data);
 
-    return {
-      message: data,
-      requestId: requestId,
-    };
+      const match = data.match(/ID:\s*(\d+)/);
+      const requestId = match ? match[1] : null;
+
+      // ✅ FIXED: Store requestId in localStorage
+      if (requestId) {
+        localStorage.setItem('requestId', requestId);
+        console.log("✅ Stored requestId in localStorage:", requestId);
+      } else {
+        console.error("❌ Could not extract requestId from response:", data);
+      }
+
+      return {
+        message: data,
+        requestId: requestId,
+      };
     } catch (error) {
       console.error('Error creating draft leave request:', error);
       throw error;
@@ -186,7 +194,6 @@ const data = await response.text(); // plain text response
   }
 }
 
-
   // Extract request ID from message
   extractRequestIdFromMessage(message) {
     if (!message) return null;
@@ -225,35 +232,6 @@ const data = await response.text(); // plain text response
     };
   }
 
-  // Validate alteration request
-  validateAlterationRequest(data) {
-    const errors = [];
-
-    if (!data.alterationMode) {
-      errors.push('Alteration mode is required');
-    }
-
-    if (data.alterationMode) {
-      if (!data.classDate) errors.push('Class date is required');
-      if (!data.classPeriod) errors.push('Class period is required');
-      if (!data.subjectCode) errors.push('Subject code is required');
-      if (!data.subjectName) errors.push('Subject name is required');
-
-      if (data.alterationMode === 'MOODLE_LINK' && !data.moodleActivityLink) {
-        errors.push('Moodle activity link is required');
-      }
-
-      if (data.alterationMode === 'STAFF_ALTERATION' && !data.replaceEmpId) {
-        errors.push('Replace employee ID is required');
-      }
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors
-    };
-  }
-
   // Validate full leave request including alteration if applicable
   validateLeaveRequest(data) {
     const basicValidation = this.validateBasicLeaveRequest(data);
@@ -268,6 +246,17 @@ const data = await response.text(); // plain text response
       isValid: errors.length === 0,
       errors
     };
+  }
+
+  // Helper method to get stored requestId
+  getStoredRequestId() {
+    const requestId = localStorage.getItem('requestId');
+    return requestId ? parseInt(requestId, 10) : null;
+  }
+
+  // Helper method to clear stored data (useful for cleanup)
+  clearStoredData() {
+    localStorage.removeItem('requestId');
   }
 }
 
