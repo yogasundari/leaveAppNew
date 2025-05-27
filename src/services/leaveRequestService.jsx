@@ -1,53 +1,105 @@
-// services/leaveRequestService.js
+// services/leaveRequestService.js - FIXED VERSION
 
 class LeaveRequestService {
   constructor() {
-    this.baseURL = 'http://localhost:8080/api'; // You can replace this with process.env.REACT_APP_API_URL in production
+    this.baseURL = 'http://localhost:8080/api';
   }
 
-  // Get employee ID from session or local storage
   getEmployeeId() {
     return sessionStorage.getItem("empId") || localStorage.getItem("empId");
   }
 
-  // Get authentication token
   getAuthToken() {
     return sessionStorage.getItem('token') || localStorage.getItem('token') || '';
   }
 
-  // Get all leave types from backend
- async getAllLeaveTypes() {
-  try {
-    const response = await fetch(`${this.baseURL}/leave-types`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${this.getAuthToken()}`, // add token if required
-        'Content-Type': 'application/json',
-      },
-    });
+  // ✅ FIXED: Return both canSubmit boolean AND status list
+  async checkNotificationStatus(requestId) {
+    try {
+      const response = await fetch(`${this.baseURL}/leave-alteration/notification-status/${requestId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.getAuthToken()}`,
+        },
+      });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const statusList = await response.json();
+      console.log('Backend status list for requestId', requestId, ':', statusList);
+
+      // Check if ALL statuses are 'APPROVED' (ignoring null/pending)
+      const pendingStatuses = statusList.filter(status => status === null || status === 'PENDING');
+      const approvedStatuses = statusList.filter(status => status === 'APPROVED');
+      const rejectedStatuses = statusList.filter(status => status === 'REJECTED');
+
+      // Can submit only if all are approved and none are rejected
+      const canSubmit = statusList.length > 0 && 
+                       statusList.every(status => status === 'APPROVED') &&
+                       rejectedStatuses.length === 0;
+
+      // Determine overall status
+      let overallStatus = 'PENDING';
+      if (rejectedStatuses.length > 0) {
+        overallStatus = 'REJECTED';
+      } else if (canSubmit) {
+        overallStatus = 'APPROVED';
+      }
+
+      console.log('Can submit form?', canSubmit);
+      console.log('Overall status:', overallStatus);
+
+      // ✅ Return both the boolean and the detailed status info
+      return {
+        canSubmit,
+        statusList,
+        overallStatus,
+        summary: {
+          total: statusList.length,
+          approved: approvedStatuses.length,
+          pending: pendingStatuses.length,
+          rejected: rejectedStatuses.length
+        }
+      };
+    } catch (error) {
+      console.error('Error checking notification status:', error);
+      throw error;
     }
-
-    const result = await response.json();
-
-    if (Array.isArray(result)) {
-      // Map your leave types to dropdown format
-      return result.map(type => ({
-        value: type.leaveTypeId,    // your ID field
-        label: type.typeName        // your display field
-      }));
-    } else {
-      throw new Error('Invalid response format from leave types API');
-    }
-  } catch (error) {
-    console.error('Error fetching leave types:', error);
-    throw error;
   }
-}
 
-  // Create draft leave request
+  // ... rest of your existing methods remain the same
+  async getAllLeaveTypes() {
+    try {
+      const response = await fetch(`${this.baseURL}/leave-types`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.getAuthToken()}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (Array.isArray(result)) {
+        return result.map(type => ({
+          value: type.leaveTypeId,
+          label: type.typeName
+        }));
+      } else {
+        throw new Error('Invalid response format from leave types API');
+      }
+    } catch (error) {
+      console.error('Error fetching leave types:', error);
+      throw error;
+    }
+  }
+
   async createDraftLeaveRequest(leaveRequestData) {
     try {
       const token = this.getAuthToken();
@@ -70,13 +122,12 @@ class LeaveRequestService {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.text(); // plain text response
+      const data = await response.text();
       console.log("Server response:", data);
 
       const match = data.match(/ID:\s*(\d+)/);
       const requestId = match ? match[1] : null;
 
-      // ✅ FIXED: Store requestId in localStorage
       if (requestId) {
         localStorage.setItem('requestId', requestId);
         console.log("✅ Stored requestId in localStorage:", requestId);
@@ -94,7 +145,6 @@ class LeaveRequestService {
     }
   }
 
-  // Submit leave request (optionally with alteration data)
   async submitLeaveRequest(requestId, alterationData = null) {
     try {
       if (alterationData) {
@@ -120,7 +170,6 @@ class LeaveRequestService {
     }
   }
 
-  // Create alteration record
   async createAlteration(alterationData) {
     try {
       const response = await fetch(`${this.baseURL}/leave-alteration/create`, {
@@ -129,7 +178,7 @@ class LeaveRequestService {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${this.getAuthToken()}`,
         },
-        body: JSON.stringify([alterationData]), // Send as array
+        body: JSON.stringify([alterationData]),
       });
 
       if (!response.ok) {
@@ -143,65 +192,38 @@ class LeaveRequestService {
     }
   }
 
-  // Check notification status
-  async checkNotificationStatus(requestId) {
+  async uploadDocument(file) {
     try {
-      const response = await fetch(`${this.baseURL}/leave-alteration/notification-status/${requestId}`, {
-        method: 'GET',
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch(`${this.baseURL}/leave-request/upload-file`, {
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.getAuthToken()}`,
         },
+        body: formData,
       });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const result = await response.json();
-      return result.status || result.notificationStatus || 'PENDING';
+      const fileUrl = await response.text();
+      console.log('UploadedfileURL:', fileUrl);
+      return fileUrl;
     } catch (error) {
-      console.error('Error checking notification status:', error);
+      console.error('Error uploading document:', error);
       throw error;
     }
   }
 
-  // Upload document
-  async uploadDocument(file) {
-  try {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const response = await fetch(`${this.baseURL}/leave-request/upload-file`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.getAuthToken()}`,
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const fileUrl = await response.text();  // <-- get plain text response
-
-    console.log('UploadedfileURL:', fileUrl); // Log the URL string
-
-    return fileUrl;  // return the URL string directly
-  } catch (error) {
-    console.error('Error uploading document:', error);
-    throw error;
-  }
-}
-
-  // Extract request ID from message
   extractRequestIdFromMessage(message) {
     if (!message) return null;
     const match = message.match(/ID:\s*(\d+)/);
     return match ? parseInt(match[1]) : null;
   }
 
-  // Validate basic leave request
   validateBasicLeaveRequest(data) {
     const errors = [];
 
@@ -232,7 +254,6 @@ class LeaveRequestService {
     };
   }
 
-  // Validate full leave request including alteration if applicable
   validateLeaveRequest(data) {
     const basicValidation = this.validateBasicLeaveRequest(data);
     const errors = [...basicValidation.errors];
@@ -248,17 +269,14 @@ class LeaveRequestService {
     };
   }
 
-  // Helper method to get stored requestId
   getStoredRequestId() {
     const requestId = localStorage.getItem('requestId');
     return requestId ? parseInt(requestId, 10) : null;
   }
 
-  // Helper method to clear stored data (useful for cleanup)
   clearStoredData() {
     localStorage.removeItem('requestId');
   }
 }
 
-// ✅ Correct export
 export default new LeaveRequestService();

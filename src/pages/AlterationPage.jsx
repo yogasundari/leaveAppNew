@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import leaveRequestService from '../services/leaveRequestService';
+import '../styles/Alteration.css';
+import { useNavigate } from 'react-router-dom';
+
 
 export default function AlterationPage() {
   const [alterations, setAlterations] = useState([
@@ -14,9 +17,12 @@ export default function AlterationPage() {
       replacementEmpId: '',
     }
   ]);
-  
+  const navigate = useNavigate();
+
   const [requestId, setRequestId] = useState(null);
+  const [notificationStatusList, setNotificationStatusList] = useState([]);
   const [notificationStatus, setNotificationStatus] = useState('');
+  const [statusSummary, setStatusSummary] = useState(null);
   const [statusCheckEnabled, setStatusCheckEnabled] = useState(false);
   const [canSubmitLeave, setCanSubmitLeave] = useState(false);
   const [alterationsSubmitted, setAlterationsSubmitted] = useState(false);
@@ -31,59 +37,49 @@ export default function AlterationPage() {
     }
   }, []);
 
-useEffect(() => {
-  let intervalId;
+  // Auto status checking with proper error handling
+  useEffect(() => {
+    let intervalId;
 
-  if (statusCheckEnabled && notificationStatus === 'PENDING' && requestId) {
-    console.log('🔄 Starting auto status check for request:', requestId);
-    console.log('🔄 Current status:', notificationStatus);
+    if (statusCheckEnabled && requestId) {
+      console.log('🔄 Starting auto status check for request:', requestId);
 
-    intervalId = setInterval(async () => {
-      try {
-        console.log('🔍 Auto-checking notification status for requestId:', requestId);
-        console.log('🔍 Current frontend status:', notificationStatus);
+      intervalId = setInterval(async () => {
+        try {
+          console.log('🔍 Auto-checking notification status for requestId:', requestId);
 
-        const statusArray = await leaveRequestService.checkNotificationStatus(requestId);
-        const status = Array.isArray(statusArray) && statusArray.length > 0 ? statusArray[0] : '';
+          const statusResult = await leaveRequestService.checkNotificationStatus(requestId);
+          
+          setNotificationStatusList(statusResult.statusList);
+          setNotificationStatus(statusResult.overallStatus);
+          setStatusSummary(statusResult.summary);
+          
+          console.log('📡 Status Result:', statusResult);
 
-        console.log('📡 Backend returned status:', status);
-        console.log('📡 Status type:', typeof status);
-
-        if (status !== notificationStatus) {
-          console.log('✅ Status changed from', notificationStatus, 'to', status);
-          setNotificationStatus(status);
-
-          if (status === 'APPROVED') {
+          if (statusResult.canSubmit && !canSubmitLeave) {
             setCanSubmitLeave(true);
-            alert('✅ Great! The replacement faculty has approved your alteration. You can now submit your leave request.');
             clearInterval(intervalId);
-          } else if (status === 'REJECTED') {
-            setCanSubmitLeave(false);
-            alert('❌ The replacement faculty has rejected your alteration request. Please contact them or choose a different faculty.');
-            clearInterval(intervalId);
+            setStatusCheckEnabled(false);
+          } else if (!statusResult.canSubmit) {
+            console.log('⏳ Still waiting for approvals...');
           }
-        } else {
-          console.log('⏳ Status unchanged, still:', status);
+        } catch (error) {
+          console.error('❌ Error auto-checking notification status:', error);
         }
-      } catch (error) {
-        console.error('❌ Error auto-checking notification status:', error);
-        console.error('❌ Error details:', error.message);
-      }
-    }, 10000);
+      }, 10000);
 
-    console.log('✅ Auto status check started, checking every 10 seconds');
-  } else {
-    console.log('❌ Auto check not started. statusCheckEnabled:', statusCheckEnabled, 'notificationStatus:', notificationStatus, 'requestId:', requestId);
-  }
-
-  return () => {
-    if (intervalId) {
-      console.log('🛑 Stopping auto status check');
-      clearInterval(intervalId);
+      console.log('✅ Auto status check started');
+    } else {
+      console.log('❌ Auto check not started. statusCheckEnabled:', statusCheckEnabled, 'requestId:', requestId);
     }
-  };
-}, [statusCheckEnabled, notificationStatus, requestId]);
 
+    return () => {
+      if (intervalId) {
+        console.log('🛑 Stopping auto status check');
+        clearInterval(intervalId);
+      }
+    };
+  }, [statusCheckEnabled, requestId, canSubmitLeave]);
 
   const handleChange = (alterationId, field, value) => {
     setAlterations(prev => 
@@ -123,7 +119,7 @@ useEffect(() => {
     console.log("Submitting alterations with empId:", empId, "and requestId:", requestId);
 
     if (!empId || isNaN(requestId)) {
-      alert('Missing empId or requestId. Make sure leave draft is created first.');
+      console.log('Missing empId or requestId. Make sure leave draft is created first.');
       return;
     }
 
@@ -160,7 +156,7 @@ useEffect(() => {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(payloads), // send array of alterations
+        body: JSON.stringify(payloads),
       });
 
       if (!res.ok) {
@@ -179,12 +175,10 @@ useEffect(() => {
       const hasOnlyMoodleLink = alterations.every(alt => alt.alterationType === 'MOODLE_LINK');
       
       if (hasStaffAlteration) {
-        // If there are staff alterations, enable notification status check
         setStatusCheckEnabled(true);
-        setCanSubmitLeave(false); // Keep disabled until approved
-        setNotificationStatus('PENDING'); // Set initial status
+        setCanSubmitLeave(false);
+        setNotificationStatus('PENDING');
       } else if (hasOnlyMoodleLink) {
-        // If only moodle alterations, enable submit leave request immediately
         setCanSubmitLeave(true);
         setStatusCheckEnabled(false);
       }
@@ -196,23 +190,28 @@ useEffect(() => {
     }
   };
 
+  // Manual status check with updated service
   const checkNotificationStatus = async () => {
     try {
-      const status = await leaveRequestService.checkNotificationStatus(requestId);
-      setNotificationStatus(status);
+      const statusResult = await leaveRequestService.checkNotificationStatus(requestId);
       
-      console.log("Notification status:", status);
-      
-      // Enable submit leave request only if status is APPROVED
-      if (status === 'APPROVED') {
-        setCanSubmitLeave(true);
-        alert('Alteration approved! You can now submit your leave request.');
+      setNotificationStatusList(statusResult.statusList);
+      setNotificationStatus(statusResult.overallStatus);
+      setStatusSummary(statusResult.summary);
+      setCanSubmitLeave(statusResult.canSubmit);
+
+      console.log("🔍 Manual check - Status Result:", statusResult);
+
+      if (statusResult.canSubmit) {
+        alert('✅ All alterations approved! You can now submit your leave request.');
+      } else if (statusResult.overallStatus === 'REJECTED') {
+        alert('❌ Some alterations were rejected. Please contact the replacement faculty.');
       } else {
-        setCanSubmitLeave(false);
+        alert(`⏳ Status: ${statusResult.summary.approved}/${statusResult.summary.total} approved. Still waiting for remaining approvals...`);
       }
     } catch (error) {
-      console.error('Error checking notification status:', error);
-      alert('Error checking notification status');
+      console.error('❌ Error checking notification status:', error);
+      alert('⚠️ Error checking notification status');
     }
   };
 
@@ -235,14 +234,15 @@ useEffect(() => {
       setStatusCheckEnabled(false);
       setAlterationsSubmitted(false);
       setNotificationStatus('');
-      
+      setNotificationStatusList([]);
+      setStatusSummary(null);
+       navigate('/dashboard/leave-history'); // Redirect to leave requests page
     } catch (error) {
       console.error('Error submitting leave request:', error);
       alert('Error submitting leave request');
     }
   };
 
-  // Determine if submit leave request should be enabled
   const shouldEnableSubmitLeave = () => {
     if (!alterationsSubmitted) return false;
     
@@ -250,60 +250,59 @@ useEffect(() => {
     const hasOnlyMoodleLink = alterations.every(alt => alt.alterationType === 'MOODLE_LINK');
     
     if (hasOnlyMoodleLink) {
-      return true; // Enable immediately for moodle alterations
+      return true;
     } else if (hasStaffAlteration) {
-      return notificationStatus === 'APPROVED'; // Enable only when approved for staff alterations
+      return canSubmitLeave && notificationStatus === 'APPROVED';
     }
     
     return false;
   };
 
   return (
-    <div className="p-4 space-y-6 max-w-4xl mx-auto bg-white shadow rounded">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold">Leave Alteration Form</h2>
+    <div className="alteration-container">
+      <div className="header">
+        <h2 className="title">Leave Alteration Form</h2>
         <button
           onClick={addNewAlteration}
-          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2 transition-colors"
+          className="btn btn-success add-btn"
         >
-          <span className="text-lg font-bold">+</span>
+          <span className="plus-icon">+</span>
           New Alteration
         </button>
       </div>
       
-      {/* Display current requestId for debugging */}
       {requestId && (
-        <div className="bg-gray-100 p-2 rounded">
-          <p className="text-sm text-gray-600">Request ID: {requestId}</p>
-          <p className="text-sm text-gray-600">Total Alterations: {alterations.length}</p>
-          <p className="text-sm text-gray-600">Alterations Submitted: {alterationsSubmitted ? 'Yes' : 'No'}</p>
+        <div className="debug-info">
+          <p>Request ID: {requestId}</p>
+          <p>Total Alterations: {alterations.length}</p>
+          <p>Alterations Submitted: {alterationsSubmitted ? 'Yes' : 'No'}</p>
         </div>
       )}
 
-      <div className="space-y-6">
+      <div className="alterations-list">
         {alterations.map((alteration, index) => (
-          <div key={alteration.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-700">
+          <div key={alteration.id} className="alteration-card">
+            <div className="alteration-header">
+              <h3 className="alteration-title">
                 Alteration #{index + 1}
               </h3>
               {alterations.length > 1 && (
                 <button
                   onClick={() => removeAlteration(alteration.id)}
-                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors"
+                  className="btn btn-danger remove-btn"
                 >
                   Remove
                 </button>
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <label className="block">
+            <div className="form-grid">
+              <label className="form-field">
                 Alteration Type:
                 <select
                   value={alteration.alterationType}
                   onChange={(e) => handleChange(alteration.id, 'alterationType', e.target.value)}
-                  className="block w-full border p-2 rounded mt-1"
+                  className="form-input"
                   disabled={alterationsSubmitted}
                 >
                   <option value="MOODLE_LINK">Moodle Link</option>
@@ -317,7 +316,7 @@ useEffect(() => {
                 value={alteration.classDate} 
                 onChange={(e) => handleChange(alteration.id, 'classDate', e.target.value)}
                 placeholder="Class Date" 
-                className="w-full border p-2 rounded"
+                className="form-input"
                 disabled={alterationsSubmitted}
               />
 
@@ -326,7 +325,7 @@ useEffect(() => {
                 value={alteration.classPeriod} 
                 onChange={(e) => handleChange(alteration.id, 'classPeriod', e.target.value)}
                 placeholder="Class Period" 
-                className="w-full border p-2 rounded"
+                className="form-input"
                 disabled={alterationsSubmitted}
               />
 
@@ -335,7 +334,7 @@ useEffect(() => {
                 value={alteration.subjectCode} 
                 onChange={(e) => handleChange(alteration.id, 'subjectCode', e.target.value)}
                 placeholder="Subject Code" 
-                className="w-full border p-2 rounded"
+                className="form-input"
                 disabled={alterationsSubmitted}
               />
 
@@ -344,7 +343,7 @@ useEffect(() => {
                 value={alteration.subjectName} 
                 onChange={(e) => handleChange(alteration.id, 'subjectName', e.target.value)}
                 placeholder="Subject Name" 
-                className="w-full border p-2 rounded"
+                className="form-input"
                 disabled={alterationsSubmitted}
               />
 
@@ -354,7 +353,7 @@ useEffect(() => {
                   value={alteration.moodleActivityLink} 
                   onChange={(e) => handleChange(alteration.id, 'moodleActivityLink', e.target.value)}
                   placeholder="Moodle Activity Link" 
-                  className="w-full border p-2 rounded"
+                  className="form-input"
                   disabled={alterationsSubmitted}
                 />
               )}
@@ -365,7 +364,7 @@ useEffect(() => {
                   value={alteration.replacementEmpId} 
                   onChange={(e) => handleChange(alteration.id, 'replacementEmpId', e.target.value)}
                   placeholder="Replacement Emp ID" 
-                  className="w-full border p-2 rounded"
+                  className="form-input"
                   disabled={alterationsSubmitted}
                 />
               )}
@@ -374,14 +373,10 @@ useEffect(() => {
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-4 pt-4 border-t">
+      <div className="action-buttons">
         <button 
           onClick={handleSubmitAlterations} 
-          className={`px-6 py-2 rounded transition-colors ${
-            alterationsSubmitted 
-              ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
-              : 'bg-blue-600 hover:bg-blue-700 text-white'
-          }`}
+          className={`btn ${alterationsSubmitted ? 'btn-disabled' : 'btn-primary'}`}
           disabled={alterationsSubmitted}
         >
           {alterationsSubmitted ? 'Alterations Submitted' : `Submit All Alterations (${alterations.length})`}
@@ -390,77 +385,98 @@ useEffect(() => {
         {statusCheckEnabled && (
           <button 
             onClick={checkNotificationStatus} 
-            className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded transition-colors"
+            className="btn btn-warning"
           >
             Check Notification Status
           </button>
         )}
 
-
-
-      {/* Auto-checking indicator for pending status */}
-      {statusCheckEnabled && notificationStatus === 'PENDING' && (
-        <div className="bg-blue-50 border border-blue-200 rounded p-3">
-          <div className="flex items-center gap-2">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-            <p className="text-blue-800 text-sm">
-              Waiting for replacement faculty approval... (Auto-checking every 15 seconds)
-            </p>
-          </div>
-          <p className="text-blue-600 text-xs mt-1">
-            The replacement faculty will receive a notification to approve your request.
-          </p>
-        </div>
-      )}
-
-      {/* Notification status display */}
-      {notificationStatus && (
-        <div className={`border rounded p-3 ${
-          notificationStatus === 'APPROVED' 
-            ? 'bg-green-50 border-green-200' 
-            : notificationStatus === 'PENDING'
-            ? 'bg-yellow-50 border-yellow-200'
-            : 'bg-red-50 border-red-200'
-        }`}>
-          <p className={`${
-            notificationStatus === 'APPROVED' 
-              ? 'text-green-800' 
-              : notificationStatus === 'PENDING'
-              ? 'text-yellow-800'
-              : 'text-red-800'
-          }`}>
-            <strong>Notification Status:</strong> {notificationStatus}
-          </p>
-          {notificationStatus === 'PENDING' && (
-            <p className="text-yellow-700 text-sm mt-1">
-              Please wait for approval before submitting leave request.
-            </p>
-          )}
-          {notificationStatus === 'APPROVED' && (
-            <p className="text-green-700 text-sm mt-1">
-              ✅ Approved! You can now submit your leave request.
-            </p>
-          )}
-          {notificationStatus === 'REJECTED' && (
-            <p className="text-red-700 text-sm mt-1">
-              ❌ Request was rejected. Please contact the replacement faculty or choose a different one.
-            </p>
-          )}
-        </div>
-
-      )}
-              <button 
+        <button 
           onClick={submitLeaveRequest} 
-          className={`px-6 py-2 rounded transition-colors ${
-            shouldEnableSubmitLeave()
-              ? 'bg-green-600 hover:bg-green-700 text-white'
-              : 'bg-gray-400 text-gray-600 cursor-not-allowed'
-          }`}
+          className={`btn ${shouldEnableSubmitLeave() ? 'btn-success' : 'btn-disabled'}`}
           disabled={!shouldEnableSubmitLeave()}
         >
           Submit Leave Request
         </button>
       </div>
+
+      {statusCheckEnabled && notificationStatus === 'PENDING' && (
+        <div className="status-pending">
+          <div className="status-header">
+            <div className="spinner"></div>
+            <p className="status-text">
+              Waiting for replacement faculty approval...
+            </p>
+          </div>
+          <p className="status-subtext">
+            Auto-checking every 10 seconds. The replacement faculty will receive a notification to approve your request.
+          </p>
+          {statusSummary && (
+            <p className="status-progress">
+              Progress: {statusSummary.approved}/{statusSummary.total} approved
+            </p>
+          )}
+        </div>
+      )}
+
+      {notificationStatusList && notificationStatusList.length > 0 && (
+        <div className="notification-status">
+          <div className="status-header-main">
+            <p className="status-title">📝 Replacement Faculty Status:</p>
+            {statusSummary && (
+              <span className="status-badge">
+                {statusSummary.approved}/{statusSummary.total} Approved
+              </span>
+            )}
+          </div>
+
+          <div className="status-list">
+            {notificationStatusList.map((status, index) => {
+              let statusClass = '';
+              let message = '';
+              let icon = '';
+
+              if (status === 'APPROVED') {
+                statusClass = 'status-approved';
+                message = 'Approved';
+                icon = '✅';
+              } else if (status === 'PENDING' || status === null) {
+                statusClass = 'status-pending-item';
+                message = 'Pending';
+                icon = '⏳';
+              } else if (status === 'REJECTED') {
+                statusClass = 'status-rejected';
+                message = 'Rejected';
+                icon = '❌';
+              }
+
+              return (
+                <div key={index} className={`status-item ${statusClass}`}>
+                  <p className="status-faculty">
+                    {icon} <strong>Replacement Faculty #{index + 1}:</strong> {message}
+                  </p>
+                  {status === 'PENDING' && (
+                    <p className="status-waiting">
+                      Notification sent, waiting for response...
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {notificationStatus && (
+            <div className="overall-status">
+              <p className="overall-status-text">
+                Overall Status: 
+                <span className={`status-badge-overall ${notificationStatus.toLowerCase()}`}>
+                  {notificationStatus}
+                </span>
+              </p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
