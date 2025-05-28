@@ -3,7 +3,6 @@ import leaveRequestService from '../services/leaveRequestService';
 import '../styles/Alteration.css';
 import { useNavigate } from 'react-router-dom';
 
-
 export default function AlterationPage() {
   const [alterations, setAlterations] = useState([
     {

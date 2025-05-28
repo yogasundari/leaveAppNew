@@ -12,6 +12,7 @@ import LeaveHistory from "./pages/LeaveHistory";
 import Approval from "./pages/Approval";
 import LeaveRequestPage from "./pages/LeaveRequestPage";
 import AlterationPage from "./pages/AlterationPage";
+import NotificationPage from "./pages/NotificationPage";
 
 
 
@@ -33,6 +34,7 @@ export default function App() {
                   <Route path="logout" element={<ErrorBoundary><Logout /></ErrorBoundary>} />
                   <Route path="leave-history" element={<PrivateRoute><LeaveHistory/></PrivateRoute>} />
                   <Route path="leave-approval" element={<PrivateRoute><Approval/></PrivateRoute>} />
+                  <Route path="notifications" element={<ErrorBoundary><NotificationPage /></ErrorBoundary>} />
                  </Routes>
           </PrivateRoute>
            } />

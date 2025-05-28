@@ -34,6 +34,7 @@ export default function Dashboard() {
     <li><NavLink to="/dashboard/profile-update" className={({ isActive }) => isActive ? "active" : ""}>Profile Update</NavLink></li>
     <li><NavLink to="/dashboard/leave-history" className={({ isActive }) => isActive ? "active" : ""}>Leave History</NavLink></li>
     <li><NavLink to="/dashboard/leave-approval" className={({ isActive }) => isActive ? "active" : ""}>Leave Approval</NavLink></li>
+    <li><NavLink to="/dashboard/notifications" className={({ isActive }) => isActive ? "active" : ""}>Notifications</NavLink></li>
     <li><NavLink to="/dashboard/logout" className="logout-button">Logout</NavLink></li>
 
 
