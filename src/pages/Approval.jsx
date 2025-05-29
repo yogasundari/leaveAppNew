@@ -93,7 +93,10 @@ const handleAction = async (approvalId, status) => {
           }}
         >
           <h3>
-            {req.empName} ({req.empId}) — {req.leaveType}
+            {req.empName} ({req.empId}) — {req.leaveType} 
+          </h3>
+          <h3>
+            {req.fileUpload}
           </h3>
           <p>
             <strong>From:</strong> {req.startDate} &nbsp; | &nbsp;{" "}
