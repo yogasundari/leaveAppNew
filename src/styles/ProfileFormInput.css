@@ -1,0 +1,21 @@
+.profile-form-group {
+  margin-bottom: 1.2rem;
+}
+
+.profile-form-label {
+  font-weight: 600;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.required {
+  color: red;
+}
+
+.profile-form-input {
+  width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}

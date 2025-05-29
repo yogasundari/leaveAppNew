@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import employeeService from '../services/employeeService';
-import FormInput from '../components/FormInput';
+import ProfileFormInput from '../components/ProfileFormInput';
 import ProfilePicture from '../components/ProfilePicture';
 import '../styles/ProfileUpdate.css';
 
 const ProfileUpdate = () => {
-  const [userData] = useState(employeeService.getUserData());
+  const userData =employeeService.getUserData()
   const [departments, setDepartments] = useState([]);
   const [formData, setFormData] = useState({
     empName: '',
@@ -157,28 +157,28 @@ console.log('empId (handleImageUpload):', empId);
       />
 
       <form onSubmit={handleSubmit}>
-        <FormInput
+        <ProfileFormInput
           name="empId"
           label="Employee ID"
           value={userData.empId}
           disabled
         />
 
-        <FormInput
+        <ProfileFormInput
           name="email"
           label="Email"
           value={userData.email}
           disabled
         />
 
-        <FormInput
+        <ProfileFormInput
           name="role"
           label="Role"
           value={userData.role}
           disabled
         />
 
-        <FormInput
+        <ProfileFormInput
           name="empName"
           label="Employee Name"
           value={formData.empName}
@@ -186,21 +186,21 @@ console.log('empId (handleImageUpload):', empId);
           required
         />
 
-        <FormInput
+        <ProfileFormInput
           name="designation"
           label="Designation"
           value={formData.designation}
           onChange={handleInputChange}
         />
 
-        <FormInput
+        <ProfileFormInput
           name="staffType"
           label="Staff Type"
           value={formData.staffType}
           onChange={handleInputChange}
         />
 
-        <FormInput
+        <ProfileFormInput
           name="joiningDate"
           label="Joining Date"
           type="date"
@@ -234,7 +234,7 @@ console.log('empId (handleImageUpload):', empId);
        </select></div>
 
         {userData.role === 'ADMIN' && (
-          <FormInput
+          <ProfileFormInput
             name="approvalFlowId"
             label="Approval Flow ID"
             value={formData.approvalFlowId}
