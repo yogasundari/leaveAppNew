@@ -5,8 +5,11 @@ import ProfilePicture from '../components/ProfilePicture';
 import '../styles/ProfileUpdate.css';
 
 const ProfileUpdate = () => {
-  const userData =employeeService.getUserData()
+  const userData = employeeService.getUserData();
+
   const [departments, setDepartments] = useState([]);
+  const [approvalFlows, setApprovalFlows] = useState([]);
+
   const [formData, setFormData] = useState({
     empName: '',
     designation: '',
@@ -34,7 +37,9 @@ const ProfileUpdate = () => {
     try {
       await Promise.all([
         fetchEmployeeProfile(),
-        fetchDepartments()
+        fetchDepartments(),
+        fetchApprovalFlows(),
+        userData.role === 'ADMIN' ? fetchApprovalFlows() : null
       ]);
     } catch (error) {
       setMessage('Error loading initial data: ' + error.message);
@@ -46,20 +51,16 @@ const ProfileUpdate = () => {
   const fetchEmployeeProfile = async () => {
     try {
       const data = await employeeService.getEmployeeProfile(userData.empId);
-
       setFormData({
         empName: data.empName || '',
         designation: data.designation || '',
         departmentId: data.department ? data.department.departmentId : '',
         staffType: data.staffType || '',
         profilePicture: data.profilePicture || '',
-        approvalFlowId: data.approvalFlowId || '',
+        approvalFlowId: data.approvalFlowId ? data.approvalFlows.approvalFlowId : '',
         joiningDate: employeeService.formatDateForInput(data.joiningDate)
       });
-console.log('Fetched profile after update:', data);
-
-setImagePreview(data.profilePicture || '');
-console.log('Profile Picture URL:', data.profilePicture);
+      setImagePreview(data.profilePicture || '');
     } catch (error) {
       throw new Error('Failed to fetch employee profile: ' + error.message);
     }
@@ -73,6 +74,16 @@ console.log('Profile Picture URL:', data.profilePicture);
       throw new Error('Failed to fetch departments: ' + error.message);
     }
   };
+
+  const fetchApprovalFlows = async () => {
+    try {
+      const data = await employeeService.getApprovalFlows();
+      setApprovalFlows(data);
+    } catch (error) {
+      setMessage('Error fetching approval flows: ' + error.message);
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -83,49 +94,46 @@ console.log('Profile Picture URL:', data.profilePicture);
     setImagePreview(URL.createObjectURL(file));
     setMessage('');
   };
-const handleImageUpload = async () => {
-  if (!selectedFile) {
-    alert('Please choose an image first!');
-    return;
-  }
-  setIsUploading(true);
-  setMessage('');
-const empId = localStorage.getItem('empId'); 
-console.log('empId (handleImageUpload):', empId);
-  try {
-    // Get the uploaded image URL from the response
-    const uploadedImageUrl = await employeeService.uploadProfilePicture(userData.empId, selectedFile);
 
+  const handleImageUpload = async () => {
+    if (!selectedFile) {
+      alert('Please choose an image first!');
+      return;
+    }
 
-    // Optionally re-fetch profile (if needed)
-    const updatedProfile = await employeeService.getEmployeeProfile(userData.empId);
+    setIsUploading(true);
+    setMessage('');
 
-    setFormData(prev => ({
-      ...prev,
-      profilePicture: uploadedImageUrl || updatedProfile.profilePicture || '',
-    }));
+    try {
+      const uploadedImageUrl = await employeeService.uploadProfilePicture(userData.empId, selectedFile);
+      const updatedProfile = await employeeService.getEmployeeProfile(userData.empId);
 
-    setImagePreview(uploadedImageUrl || updatedProfile.profilePicture || '');
+      setFormData(prev => ({
+        ...prev,
+        profilePicture: uploadedImageUrl || updatedProfile.profilePicture || '',
+      }));
 
-    setSelectedFile(null);
-    setMessage('Image uploaded successfully!');
-  } catch (error) {
-    setMessage('Error uploading image: ' + error.message);
-  } finally {
-    setIsUploading(false);
-  }
-};
-
+      setImagePreview(uploadedImageUrl || updatedProfile.profilePicture || '');
+      setSelectedFile(null);
+      setMessage('Image uploaded successfully!');
+    } catch (error) {
+      setMessage('Error uploading image: ' + error.message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setMessage('');
-
+console.log("📦 Sending profile update data to backend:", formData);
     try {
       await employeeService.updateEmployeeProfile(userData.empId, formData);
       setMessage('Profile updated successfully!');
+
       await fetchEmployeeProfile();
+
     } catch (error) {
       setMessage('Error updating profile: ' + error.message);
     } finally {
@@ -151,102 +159,82 @@ console.log('empId (handleImageUpload):', empId);
         imagePreview={imagePreview}
         onFileSelect={handleFileSelect}
         onUpload={handleImageUpload}
-
         selectedFile={selectedFile}
         isUploading={isUploading}
       />
 
       <form onSubmit={handleSubmit}>
-        <ProfileFormInput
-          name="empId"
-          label="Employee ID"
-          value={userData.empId}
-          disabled
-        />
+        <ProfileFormInput name="empId" label="Employee ID" value={userData.empId} disabled />
+        <ProfileFormInput name="email" label="Email" value={userData.email} disabled />
+        <ProfileFormInput name="role" label="Role" value={userData.role} disabled />
 
-        <ProfileFormInput
-          name="email"
-          label="Email"
-          value={userData.email}
-          disabled
-        />
-
-        <ProfileFormInput
-          name="role"
-          label="Role"
-          value={userData.role}
-          disabled
-        />
-
-        <ProfileFormInput
-          name="empName"
-          label="Employee Name"
-          value={formData.empName}
-          onChange={handleInputChange}
-          required
-        />
-
-        <ProfileFormInput
-          name="designation"
-          label="Designation"
-          value={formData.designation}
-          onChange={handleInputChange}
-        />
-
-        <ProfileFormInput
-          name="staffType"
-          label="Staff Type"
-          value={formData.staffType}
-          onChange={handleInputChange}
-        />
-
-        <ProfileFormInput
-          name="joiningDate"
-          label="Joining Date"
-          type="date"
-          value={formData.joiningDate}
-          onChange={handleInputChange}
-          required
-        />
+        <ProfileFormInput name="empName" label="Employee Name" value={formData.empName} onChange={handleInputChange} required />
+        <ProfileFormInput name="designation" label="Designation" value={formData.designation} onChange={handleInputChange} />
+        <ProfileFormInput name="staffType" label="Staff Type" value={formData.staffType} onChange={handleInputChange} />
+        <ProfileFormInput name="joiningDate" label="Joining Date" type="date" value={formData.joiningDate} onChange={handleInputChange} required />
 
         <div className="form-group">
           <label className="form-label" htmlFor="departmentId">
             Department <span style={{ color: '#dc3545', marginLeft: '4px' }}>*</span>
           </label>
-             <select
-                id="departmentId"
-              name="departmentId"
-             value={Number(formData.departmentId)} // Ensure selected value is a number
-             onChange={(e) =>
-               setFormData((prev) => ({
-                 ...prev,
-                    departmentId: parseInt(e.target.value, 10), // Parse to integer
-                       }))
-                }
-               className="form-select"
-               required>
-              <option value="">Select Department</option>
-              {departments.map((dept) => (
-                   <option key={dept.departmentId} value={dept.departmentId}>
-               {dept.deptName}
+          <select
+            id="departmentId"
+            name="departmentId"
+            value={Number(formData.departmentId)}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                departmentId: parseInt(e.target.value, 10),
+              }))
+            }
+            className="form-select"
+            required
+          >
+            <option value="">Select Department</option>
+            {departments.map((dept) => (
+              <option key={dept.departmentId} value={dept.departmentId}>
+                {dept.deptName}
               </option>
-               ))}
-       </select></div>
+            ))}
+          </select>
+        </div>
 
         {userData.role === 'ADMIN' && (
-          <ProfileFormInput
-            name="approvalFlowId"
-            label="Approval Flow ID"
-            value={formData.approvalFlowId}
-            disabled
-          />
+          <div className="form-group">
+            <label className="form-label" htmlFor="approvalFlowId">
+              Approval Flow <span style={{ color: '#dc3545', marginLeft: '4px' }}>*</span>
+            </label>
+           <div className="form-group">
+ <select
+  id="approvalFlowId"
+  name="approvalFlowId"
+  value={formData.approvalFlowId ?? ''} // Ensure a fallback for undefined
+  onChange={(e) => {
+    const id = parseInt(e.target.value, 10);
+    console.log("Selected Approval Flow ID:", id); // Debug output
+    setFormData((prev) => ({
+      ...prev,
+      approvalFlowId: id, // Set parsed integer to state
+    }));
+  }}
+  className="form-select"
+  required
+>
+  <option value="">Select Approval Flow</option>
+  {approvalFlows.map((flow) => (
+    <option key={flow.approvalFlowId} value={flow.approvalFlowId}>
+      {flow.name}
+    </option>
+  ))}
+</select>
+
+</div>
+
+
+          </div>
         )}
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="submit-button"
-        >
+        <button type="submit" disabled={isLoading} className="submit-button">
           {isLoading ? 'Updating...' : 'Update Profile'}
         </button>
       </form>

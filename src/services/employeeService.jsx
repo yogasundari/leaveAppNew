@@ -131,6 +131,27 @@ const message = await response.text(); // correctly handles plain text
 
     };
   }
+  // Fetch all Approval flow id
+async getApprovalFlows() {
+  try {
+    const response = await fetch(`${this.baseURL}/approval-flows`, {
+      method: 'GET',
+      headers: this.getAuthHeaders()
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch approval flow: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json(); // ✅ parse JSON first
+    console.log("approvalFlows", data); // ✅ log the actual fetched array
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching approval flow:', error);
+    throw error;
+  }
+}
 
   // Format date for input fields
   formatDateForInput(dateStr) {
