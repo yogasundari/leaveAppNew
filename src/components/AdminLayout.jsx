@@ -30,6 +30,15 @@ export default function AdminLayout() {
       {/* Sidebar */}
       <nav className={`sidebar ${sidebarOpen ? "open" : ""}`}>
         <ul>
+          <li>
+            <NavLink 
+              to="/admin-panel/employee" 
+              className={({ isActive }) => (isActive ? "active" : "")}
+              onClick={() => setSidebarOpen(false)}
+            >
+             Employee Management
+            </NavLink>
+          </li>
                     <li>
             <NavLink 
               to="/admin-panel/leave-type" 
@@ -39,13 +48,22 @@ export default function AdminLayout() {
               Leave Type Management
             </NavLink>
           </li>
-          <li>
+           <li>
             <NavLink 
-              to="/admin-panel/reports" 
+              to="/admin-panel/department" 
               className={({ isActive }) => (isActive ? "active" : "")}
               onClick={() => setSidebarOpen(false)}
             >
-              Reports
+              Department Management
+            </NavLink>
+          </li>
+          <li>
+            <NavLink 
+              to="/admin-panel/approvalflow" 
+              className={({ isActive }) => (isActive ? "active" : "")}
+              onClick={() => setSidebarOpen(false)}
+            >
+              ApprovalFlow Management
             </NavLink>
           </li>
           <li>

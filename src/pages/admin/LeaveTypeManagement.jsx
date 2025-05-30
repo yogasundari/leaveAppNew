@@ -29,17 +29,27 @@ const LeaveTypeManagement = () => {
     // Navigate or open modal for editing
   };
 
-  const handleDelete = async (leaveTypeId) => {
-    if (!window.confirm("Are you sure you want to delete this leave type?")) return;
-    try {
-      await axios.delete(`http://localhost:8080/api/leave-types/${leaveTypeId}`);
-      fetchLeaveTypes(); // Refresh list after delete
-    } catch (error) {
-      console.error("Failed to delete leave type", error);
-    }
-  };
+const handleDelete = async (leaveTypeId) => {
+  const confirmDelete = window.confirm(`Are you sure you want to delete employee ${leaveTypeId}? This action cannot be undone.`);
+  if (!confirmDelete) return;
+
+  try {
+    const token = localStorage.getItem('token');
+    await axios.delete(`http://localhost:8080/api/leave-types/${leaveTypeId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    alert(`Leave type ${leaveTypeId} deleted successfully.`);
+  } catch (error) {
+    console.error('Delete error:', error);
+    alert('Failed to delete employee: ' + (error.response?.data?.message || error.message));
+  }
+};
 
   const handleAdd = () => {
+    navigate(`/admin-panel/leave-type/add`);
     console.log("Add new leave type");
     // Navigate or open modal for adding
   };

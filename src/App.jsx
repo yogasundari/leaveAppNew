@@ -21,6 +21,14 @@ import EditEmployee from "./pages/admin/EditEmployee";
 import Home from "./pages/Home";
 import LeaveTypeManagement from "./pages/admin/LeaveTypeManagement";
 import EditLeaveType from "./pages/admin/EditLeaveType";
+import AddLeaveType from "./pages/admin/AddLeaveType";
+import EditDepartment from "./pages/admin/waste";
+import DepartmentManagement from "./pages/admin/DepartmentManagement";
+import AddDepartment from "./pages/admin/AddDepartment";
+import ApprovalFlowManagement from "./pages/admin/ApprovalFlowManagement";
+import EditApprovalFlow from "./pages/admin/EditApprovalFlow";
+import AddApprovalFlow from "./pages/admin/AddApprovalFlow";
+
 // Main App Component
 export default function App() {
   return (
@@ -144,7 +152,14 @@ export default function App() {
             </ErrorBoundary>
           }
         />
-        <Route path="leave-type/edit/:id" element={<EditLeaveType />} />
+        <Route path="leave-type/edit/:id" element={<EditLeaveType />}/>
+        <Route path="leave-type/add"element={<ErrorBoundary><AddLeaveType /></ErrorBoundary>} />
+        <Route path="department" element={<ErrorBoundary> <DepartmentManagement /></ErrorBoundary>}/>
+        <Route path="department/edit/:id" element={<ErrorBoundary> <EditDepartment /></ErrorBoundary>} />
+        <Route path="department/add" element={<ErrorBoundary> <AddDepartment /></ErrorBoundary>} />
+        <Route path="approvalflow" element={<ErrorBoundary> <ApprovalFlowManagement /> </ErrorBoundary>} />
+        <Route path="approvalflow/edit/:id" element={<ErrorBoundary> <EditApprovalFlow /> </ErrorBoundary>} />
+        <Route path="approvalflow/add" element={<ErrorBoundary> <AddApprovalFlow /> </ErrorBoundary>} />
       </Route>
     </Routes>
   );
