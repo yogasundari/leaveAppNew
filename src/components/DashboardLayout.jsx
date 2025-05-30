@@ -15,11 +15,12 @@ export default function DashboardLayout() {
       {/* Top Navbar */}
       <header className="top-navbar">
         <button className="hamburger" onClick={toggleSidebar}>☰</button>
+        <h1 className="app-title"> Dashboard</h1>
       </header>
 
       <nav className={`sidebar ${sidebarOpen ? "open" : ""}`}>
         <ul>
-          <li><NavLink to="/dashboard" end className={({ isActive }) => (isActive ? "active" : "")}>Dashboard</NavLink></li>
+        
           <li><NavLink to="/dashboard/leaverequests" className={({ isActive }) => (isActive ? "active" : "")}>Leave Requests</NavLink></li>
           <li><NavLink to="/dashboard/profile-update" className={({ isActive }) => (isActive ? "active" : "")}>Profile Update</NavLink></li>
           <li><NavLink to="/dashboard/leave-history" className={({ isActive }) => (isActive ? "active" : "")}>Leave History</NavLink></li>
