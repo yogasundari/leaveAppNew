@@ -156,6 +156,7 @@ const EditEmployee = () => {
       );
 
       setMessage('Employee updated successfully!');
+      navigate('/admin-panel/employee'); // Redirect to employee list
     } catch (error) {
       setMessage('Error updating employee: ' + error.message);
     } finally {

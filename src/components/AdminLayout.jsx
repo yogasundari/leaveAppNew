@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import "../styles/Adminpanel.css"
 
 
 export default function AdminLayout() {
@@ -64,6 +65,15 @@ export default function AdminLayout() {
               onClick={() => setSidebarOpen(false)}
             >
               ApprovalFlow Management
+            </NavLink>
+          </li>
+                    <li>
+            <NavLink 
+              to="/admin-panel/approvalflowlevel" 
+              className={({ isActive }) => (isActive ? "active" : "")}
+              onClick={() => setSidebarOpen(false)}
+            >
+              ApprovalFlowLevel Management
             </NavLink>
           </li>
           <li>

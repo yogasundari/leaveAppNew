@@ -27,20 +27,22 @@ function Home() {
 >
  <h1>SAVEETHA's LEAVE MANAGEMENT APP</h1>
   
-  <button
-    onClick={handleLetsGo}
-    style={{
-      padding: '0.5rem 1rem',
-      fontSize: '1.2rem',
-      cursor: 'pointer',
-      backgroundColor: 'rgba(0,0,0,0.6)',
-      border: 'none',
-      borderRadius: '5px',
-      color: 'white',
-    }}
-  >
-    Let's Go
-  </button>
+<button
+  onClick={handleLetsGo}
+  style={{
+    display: 'inline-block',     // ← important fix
+    width: 'auto',               // ← prevent full width
+    padding: '0.5rem 1rem',
+    fontSize: '1rem',
+    cursor: 'pointer',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    border: 'none',
+    borderRadius: '5px',
+    color: 'white',
+  }}
+>
+  Let's Go
+</button>
 </div>
 
   );

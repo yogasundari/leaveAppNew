@@ -28,6 +28,9 @@ import AddDepartment from "./pages/admin/AddDepartment";
 import ApprovalFlowManagement from "./pages/admin/ApprovalFlowManagement";
 import EditApprovalFlow from "./pages/admin/EditApprovalFlow";
 import AddApprovalFlow from "./pages/admin/AddApprovalFlow";
+import ApprovalFlowLevelManagement from "./pages/admin/ApprovalFlowLevelManagement";
+import EditApprovalFlowLevel from "./pages/admin/EditApprovalFlowLevel";
+import AddApprovalFlowLevel from "./pages/admin/AddApprovalFlowLevel";
 
 // Main App Component
 export default function App() {
@@ -160,6 +163,9 @@ export default function App() {
         <Route path="approvalflow" element={<ErrorBoundary> <ApprovalFlowManagement /> </ErrorBoundary>} />
         <Route path="approvalflow/edit/:id" element={<ErrorBoundary> <EditApprovalFlow /> </ErrorBoundary>} />
         <Route path="approvalflow/add" element={<ErrorBoundary> <AddApprovalFlow /> </ErrorBoundary>} />
+        <Route path="approvalflowlevel" element={<ErrorBoundary> <ApprovalFlowLevelManagement /> </ErrorBoundary>} />
+        <Route path="approvalflowlevel/edit/:id" element={<ErrorBoundary> <EditApprovalFlowLevel /> </ErrorBoundary>} />
+        <Route path="approvalflowlevel/add" element={<ErrorBoundary> <AddApprovalFlowLevel /> </ErrorBoundary>} />
       </Route>
     </Routes>
   );

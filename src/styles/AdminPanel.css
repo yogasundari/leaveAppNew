@@ -1,0 +1,204 @@
+/* AdminLayout.css */
+
+.admin-container {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+/* Top Navbar */
+.top-navbar {
+  background-color: #007bff;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+.hamburger {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  margin-right: 15px;
+  padding: 5px;
+}
+
+.hamburger:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.app-title {
+  font-size: 20px;
+  margin: 0;
+  font-weight: 600;
+}
+
+/* Sidebar */
+.sidebar {
+  background-color: #f8f9fa;
+  width: 280px;
+  position: fixed;
+  left: -280px;
+  top: 60px;
+  height: calc(100vh - 60px);
+  transition: left 0.3s ease;
+  border-right: 1px solid #ddd;
+  z-index: 999;
+  overflow-y: auto;
+}
+
+.sidebar.open {
+  left: 0;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar li {
+  border-bottom: 1px solid #e9ecef;
+}
+
+.sidebar a {
+  display: block;
+  padding: 15px 20px;
+  color: #333;
+  text-decoration: none;
+  transition: background-color 0.2s;
+  font-size: 14px;
+}
+
+.sidebar a:hover {
+  background-color: #e9ecef;
+}
+
+.sidebar a.active {
+  background-color: #007bff;
+  color: white;
+  border-left: 4px solid #0056b3;
+}
+
+/* Sidebar Overlay for Mobile */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+  display: block;
+}
+
+/* Main Content */
+.main-content {
+  margin-top: 60px;
+  padding: 20px;
+  min-height: calc(100vh - 60px);
+  background-color: #f5f5f5;
+  transition: margin-left 0.3s ease;
+}
+
+/* Desktop Layout */
+@media (min-width: 768px) {
+  .hamburger {
+    display: none;
+  }
+  
+  .sidebar {
+    left: 0;
+    position: fixed;
+    top: 60px;
+    height: calc(100vh - 60px);
+    width: 280px;
+  }
+  
+  .admin-container {
+    flex-direction: row;
+  }
+  
+  .main-content {
+    margin-left: 280px;
+    margin-top: 60px;
+    padding: 20px;
+  }
+  
+  .sidebar-overlay {
+    display: none;
+  }
+}
+
+/* Tablet Layout */
+@media (max-width: 767px) and (min-width: 481px) {
+  .sidebar {
+    width: 250px;
+    left: -250px;
+  }
+  
+  .sidebar.open {
+    left: 0;
+  }
+  
+  .main-content {
+    margin-left: 0;
+  }
+}
+
+/* Mobile Layout */
+@media (max-width: 480px) {
+  .top-navbar {
+    padding: 12px 15px;
+  }
+  
+  .app-title {
+    font-size: 18px;
+  }
+  
+  .sidebar {
+    width: 100%;
+    left: -100%;
+  }
+  
+  .sidebar.open {
+    left: 0;
+  }
+  
+  .sidebar a {
+    padding: 12px 15px;
+    font-size: 16px;
+  }
+  
+  .main-content {
+    margin-left: 0;
+    padding: 15px;
+  }
+}
+
+/* Content Area Styling */
+.main-content > * {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Smooth transitions */
+* {
+  box-sizing: border-box;
+}
+
+/* Fix for content jumping */
+@media (min-width: 768px) {
+  .admin-container {
+    padding-left: 0;
+  }
+}

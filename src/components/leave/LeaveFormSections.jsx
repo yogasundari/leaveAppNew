@@ -34,16 +34,6 @@ const [uploadError, setUploadError] = useState('');
         console.error('Error fetching leave types:', error);
         setLeaveTypesError('Failed to load leave types');
         // Fallback to default leave types with integer IDs
-        setLeaveTypes([
-          { value: 1, label: 'Casual Leave (CL)' },
-          { value: 2, label: 'Medical Leave (ML)' },
-          { value: 3, label: 'Earned Leave (EL)' },
-          { value: 4, label: 'Vacation' },
-          { value: 5, label: 'Permission' },
-          { value: 6, label: 'Late' },
-          { value: 7, label: 'Regional Holiday (RH)' },
-          { value: 8, label: 'Compensatory Leave' }
-        ]);
       } finally {
         setIsLoadingLeaveTypes(false);
       }
@@ -304,7 +294,6 @@ export const CompoffSection = ({ formData, onChange }) => {
     </FormGroup>
   );
 };
-
 
 
 

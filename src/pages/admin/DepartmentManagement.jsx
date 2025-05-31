@@ -38,51 +38,46 @@ navigate(`/admin-panel/department/add`);
 
 
   return (
-    <div className="container">
-      <h2>Department Management</h2>
-
-      <div>
-        <button onClick={handleAdd}>Add</button>
-      </div>
-      <table >
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Department Name</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {departments.map((dept) => (
-            <tr key={dept.id}>
-              <td>{dept.departmentId}</td>
-              <td>{editId === dept.id ? (
-                  <input
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                  />
-                ) : (
-                  dept.deptName
-                )}
-              </td>
-               <td className="p-2 border">
-                <button
-                  onClick={() => handleEdit(dept.departmentId)}
-                  className="bg-blue-500 text-white px-3 py-1 rounded mr-2 hover:bg-blue-600"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(dept.departmentId)}
-                  className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+  <div className="department-management">
+    <div className="department-header">
+      <h2 className="department-title">Department Management</h2>
+      <button className="btn-add-department" onClick={handleAdd}>
+        Add
+      </button>
     </div>
-  );
+
+    <table className="department-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Department Name</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {departments.map((dept) => (
+          <tr key={dept.departmentId}>
+            <td>{dept.departmentId}</td>
+            <td>{dept.deptName}</td>
+            <td>
+              <button
+                onClick={() => handleEdit(dept.departmentId)}
+                className="btn-edit"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => handleDelete(dept.departmentId)}
+                className="btn-delete"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+);
+
 }
