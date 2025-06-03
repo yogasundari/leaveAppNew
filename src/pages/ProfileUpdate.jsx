@@ -127,7 +127,7 @@ const ProfileUpdate = () => {
     e.preventDefault();
     setIsLoading(true);
     setMessage('');
-console.log("📦 Sending profile update data to backend:", formData);
+console.log(" Sending profile update data to backend:", formData);
     try {
       await employeeService.updateEmployeeProfile(userData.empId, formData);
       setMessage('Profile updated successfully!');
@@ -181,7 +181,7 @@ console.log("📦 Sending profile update data to backend:", formData);
   ]}
 />
 
-        <ProfileFormInput name="joiningDate" label="Joining Date" type="date" value={formData.joiningDate} onChange={handleInputChange} required />
+        <ProfileFormInput name="joiningDate" label="Joining Date" type="date" value={formData.joiningDate} onChange={handleInputChange} required  disabled={!!formData.joiningDate}/>
 
         <div className="form-group">
           <label className="form-label" htmlFor="departmentId">
