@@ -82,6 +82,7 @@ export default function ApprovalFlowLevelManagement() {
               <th>FlowID</th>
               <th>Sequence</th>
               <th>Approver</th>
+              <th>Active</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -92,7 +93,7 @@ export default function ApprovalFlowLevelManagement() {
                 <td>{level.approvalFlowId}</td>
                  <td>{level.sequence}</td>
                 <td>{level.approverId}</td>
-               
+              <td>{level.active ? 'Active' : 'Inactive'}</td>
                 <td>
                   <button onClick={() => handleEdit(level.flowLevelId)}>Edit</button>{' '}
                   <button onClick={() => handleDelete(level.flowLevelId)} style={{ color: 'red' }}>

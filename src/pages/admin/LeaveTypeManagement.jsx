@@ -12,16 +12,22 @@ const LeaveTypeManagement = () => {
     fetchLeaveTypes();
   }, []);
 
-  const fetchLeaveTypes = async () => {
-    try {
-      const res = await axios.get("http://localhost:8080/api/leave-types");
-      setLeaveTypes(res.data);
-    } catch (error) {
-      console.error("Failed to fetch leave types", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+const fetchLeaveTypes = async () => {
+  try {
+    const token = localStorage.getItem("token"); // or sessionStorage or context
+    const res = await axios.get("http://localhost:8080/api/leave-types", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    setLeaveTypes(res.data);
+  } catch (error) {
+    console.error("Failed to fetch leave types", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleEdit = (leaveTypeId) => {
      navigate(`/admin-panel/leave-type/edit/${leaveTypeId}`);
@@ -75,6 +81,7 @@ const handleDelete = async (leaveTypeId) => {
             <th className="p-2 border">Total Days</th>
             <th className="p-2 border">Year Start</th>
             <th className="p-2 border">Year End</th>
+            <th className="p-2 border">Status</th>
             <th className="p-2 border">Actions</th>
           </tr>
         </thead>
@@ -86,6 +93,10 @@ const handleDelete = async (leaveTypeId) => {
               <td className="p-2 border">{type.maxAllowedPerYear}</td>
               <td className="p-2 border">{type.academicYearStart}</td>
               <td className="p-2 border">{type.academicYearEnd}</td>
+              <td className="p-2 border">
+  {type.active ? "Active" : "Inactive"}
+</td>
+
               <td className="p-2 border">
                 <button
                   onClick={() => handleEdit(type.leaveTypeId)}

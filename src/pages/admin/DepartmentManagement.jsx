@@ -18,7 +18,7 @@ export default function DepartmentManagement() {
 
   const fetchDepartments = async () => {
     try {
-      const res = await axios.get('http://localhost:8080/api/departments', {
+      const res = await axios.get('http://localhost:8080/api/departments/all', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setDepartments(res.data);
@@ -51,6 +51,7 @@ navigate(`/admin-panel/department/add`);
         <tr>
           <th>ID</th>
           <th>Department Name</th>
+          <th>Status</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -59,6 +60,8 @@ navigate(`/admin-panel/department/add`);
           <tr key={dept.departmentId}>
             <td>{dept.departmentId}</td>
             <td>{dept.deptName}</td>
+            <td className="p-2 border"> <span className={`px-2 py-1 rounded text-white text-sm ${dept.active ? 'bg-green-500' : 'bg-red-500'}`}>
+                        {dept.active ? "Active" : "Inactive"}</span></td>
             <td>
               <button
                 onClick={() => handleEdit(dept.departmentId)}

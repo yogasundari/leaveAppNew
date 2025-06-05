@@ -177,12 +177,6 @@ function EmployeeManagement() {
                         Delete
                       </button>
                       <button 
-                        onClick={() => handleView(emp.empId)} 
-                        className="btn-action btn-view"
-                      >
-                        View
-                      </button>
-                      <button 
                         onClick={() => handleActivate(emp.empId)} 
                         className="btn-action btn-activate"
                       >

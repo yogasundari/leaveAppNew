@@ -13,7 +13,7 @@ class LeaveRequestService {
     return sessionStorage.getItem('token') || localStorage.getItem('token') || '';
   }
 
-  // ✅ FIXED: Return both canSubmit boolean AND status list
+  // FIXED: Return both canSubmit boolean AND status list
   async checkNotificationStatus(requestId) {
     try {
       const response = await fetch(`${this.baseURL}/leave-alteration/notification-status/${requestId}`, {
@@ -51,7 +51,7 @@ class LeaveRequestService {
       console.log('Can submit form?', canSubmit);
       console.log('Overall status:', overallStatus);
 
-      // ✅ Return both the boolean and the detailed status info
+      // Return both the boolean and the detailed status info
       return {
         canSubmit,
         statusList,
@@ -72,7 +72,7 @@ class LeaveRequestService {
   // ... rest of your existing methods remain the same
   async getAllLeaveTypes() {
     try {
-      const response = await fetch(`${this.baseURL}/leave-types`, {
+      const response = await fetch(`${this.baseURL}/leave-types/active`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${this.getAuthToken()}`,
@@ -130,9 +130,9 @@ class LeaveRequestService {
 
       if (requestId) {
         localStorage.setItem('requestId', requestId);
-        console.log("✅ Stored requestId in localStorage:", requestId);
+        console.log(" Stored requestId in localStorage:", requestId);
       } else {
-        console.error("❌ Could not extract requestId from response:", data);
+        console.error(" Could not extract requestId from response:", data);
       }
 
       return {

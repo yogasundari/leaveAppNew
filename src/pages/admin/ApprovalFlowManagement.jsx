@@ -89,7 +89,7 @@ export default function ApprovalFlowManagement() {
                 <td>{flow.approvalFlowId}</td>
                 <td>{flow.name}</td>
                 <td>{flow.finalApprover?.empName}</td>
-                <td>{flow.active ? 'Yes' : 'No'}</td>
+                <td>{flow.active ? 'Active' : 'Inactive'}</td>
                 <td>
                   <button onClick={() => handleEdit(flow.approvalFlowId)}>Edit</button>{' '}
                   <button onClick={() => handleDelete(flow.approvalFlowId)} style={{ color: 'red' }}>
