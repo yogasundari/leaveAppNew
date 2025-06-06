@@ -12,7 +12,7 @@ export default function ApprovalFlowLevelManagement() {
   const fetchLevels = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:8080/api/approval-flow-levels/active', {
+      const response = await axios.get('http://localhost:8080/api/approval-flow-levels/all', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
