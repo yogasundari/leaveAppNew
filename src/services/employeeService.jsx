@@ -143,8 +143,8 @@ async getApprovalFlows() {
       throw new Error(`Failed to fetch approval flow: ${response.status} ${response.statusText}`);
     }
 
-    const data = await response.json(); // ✅ parse JSON first
-    console.log("approvalFlows", data); // ✅ log the actual fetched array
+    const data = await response.json();
+    console.log("approvalFlows", data); 
 
     return data;
   } catch (error) {
