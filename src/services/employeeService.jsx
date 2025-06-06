@@ -134,7 +134,7 @@ const message = await response.text(); // correctly handles plain text
   // Fetch all Approval flow id
 async getApprovalFlows() {
   try {
-    const response = await fetch(`${this.baseURL}/approval-flows`, {
+    const response = await fetch(`${this.baseURL}/approval-flows/active`, {
       method: 'GET',
       headers: this.getAuthHeaders()
     });

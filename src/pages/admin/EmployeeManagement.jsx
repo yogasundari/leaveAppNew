@@ -7,6 +7,7 @@ function EmployeeManagement() {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchEmployees();
@@ -82,6 +83,25 @@ function EmployeeManagement() {
       alert('Failed to activate employee: ' + (error.response?.data?.message || error.message));
     }
   };
+const handleSearch = async () => {
+  try {
+    setLoading(true);
+    const token = localStorage.getItem('token');
+
+    const res = await axios.get(`http://localhost:8080/api/employees/search?keyword=${searchTerm}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    setEmployees(res.data);
+  } catch (err) {
+    console.error('Search failed:', err);
+    alert('Failed to search employee: ' + (err.response?.data?.message || err.message));
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleDeactivate = async (empId) => {
     const confirmDeactivate = window.confirm(`Are you sure you want to deactivate employee ${empId}?`);
@@ -116,11 +136,26 @@ function EmployeeManagement() {
     <div className="employee-management">
       <div className="employee-header">
         <h1 className="employee-title">Employee Management</h1>
+        <div style={{ display: 'flex', gap: '10px' }}>
+    <input
+      type="text"
+      placeholder="Search by name, email, etc."
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          handleSearch();
+        }
+      }}
+      style={{ padding: '8px', width: '250px' }}
+    />
+    <button onClick={handleSearch} className="btn-add">Search</button>
+    <button onClick={fetchEmployees} className="btn-add">Reset</button>
         <button onClick={handleAdd} className="btn-add">
           + Add Employee
         </button>
       </div>
-
+</div>
       {employees.length === 0 ? (
         <div className="empty-state">
           <h3>No Employees Found</h3>
