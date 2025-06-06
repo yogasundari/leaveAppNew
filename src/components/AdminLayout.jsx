@@ -78,11 +78,11 @@ export default function AdminLayout() {
           </li>
           <li>
             <NavLink 
-              to="/admin-panel/settings" 
+              to="/admin-panel/leave-balance" 
               className={({ isActive }) => (isActive ? "active" : "")}
               onClick={() => setSidebarOpen(false)}
             >
-              Settings
+              Leave Balance Management
             </NavLink>
           </li>
         </ul>

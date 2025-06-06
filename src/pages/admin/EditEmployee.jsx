@@ -5,6 +5,7 @@ import ProfilePicture from "../../components/ProfilePicture";
 import ProfileFormInput from '../../components/ProfileFormInput';
 import '../../styles/ProfileUpdate.css';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const EditEmployee = () => {
   const { id } = useParams(); // employee ID from route
@@ -28,7 +29,7 @@ const EditEmployee = () => {
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-
+const navigate = useNavigate();
   useEffect(() => {
     if (id) {
       loadInitialData();
