@@ -10,6 +10,7 @@ import {
 } from '../components/leave/LeaveFormSections';
 import { Button, ErrorMessage, SuccessMessage } from '../components/form/FormComponents';
 import '../styles/LeaveRequest.css';
+import { useNavigate } from 'react-router-dom';
 
 const LeaveRequestPage = () => {
   const [formData, setFormData] = useState({
@@ -32,6 +33,7 @@ const LeaveRequestPage = () => {
   const [errors, setErrors] = useState([]);
   const [successMessage, setSuccessMessage] = useState('');
   const [showAlterationType, setShowAlterationType] = useState(false);
+  const navigate = useNavigate();
 
   const handleFieldChange = (field, value) => {
     setFormData(prev => ({
@@ -111,6 +113,7 @@ const leaveRequestData = {
 
       const result = await leaveRequestService.createDraftLeaveRequest(leaveRequestData);
       setSuccessMessage('Leave request submitted successfully!');
+      navigate('/dashboard/leave-history'); // Redirect to leave requests page after submission
       console.log('Leave request submitted:', result);
     } catch (error) {
       setErrors(['Failed to submit leave request. Please try again.']);

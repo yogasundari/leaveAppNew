@@ -8,7 +8,7 @@ const ProfileUpdate = () => {
   const userData = employeeService.getUserData();
 
   const [departments, setDepartments] = useState([]);
-  const [approvalFlows, setApprovalFlows] = useState([]);
+ 
 
   const [formData, setFormData] = useState({
     empName: '',
@@ -38,8 +38,6 @@ const ProfileUpdate = () => {
       await Promise.all([
         fetchEmployeeProfile(),
         fetchDepartments(),
-        fetchApprovalFlows(),
-        userData.role === 'ADMIN' ? fetchApprovalFlows() : null
       ]);
     } catch (error) {
       setMessage('Error loading initial data: ' + error.message);
@@ -75,14 +73,7 @@ const ProfileUpdate = () => {
     }
   };
 
-  const fetchApprovalFlows = async () => {
-    try {
-      const data = await employeeService.getApprovalFlows();
-      setApprovalFlows(data);
-    } catch (error) {
-      setMessage('Error fetching approval flows: ' + error.message);
-    }
-  };
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

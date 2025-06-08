@@ -89,7 +89,7 @@ export default function App() {
           }
         />
         <Route
-          path="leaverequests"
+          path="leave-requests"
           element={
             <ErrorBoundary>
               <LeaveRequestPage />
