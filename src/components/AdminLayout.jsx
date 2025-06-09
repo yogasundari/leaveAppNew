@@ -85,6 +85,15 @@ export default function AdminLayout() {
               Leave Balance Management
             </NavLink>
           </li>
+            <li>
+            <NavLink 
+              to="/admin-panel/leave-request-admin" 
+              className={({ isActive }) => (isActive ? "active" : "")}
+              onClick={() => setSidebarOpen(false)}
+            >
+              Leave Request Management
+            </NavLink>
+          </li>
         </ul>
       </nav>
 

@@ -32,6 +32,7 @@ import ApprovalFlowLevelManagement from "./pages/admin/ApprovalFlowLevelManageme
 import EditApprovalFlowLevel from "./pages/admin/EditApprovalFlowLevel";
 import AddApprovalFlowLevel from "./pages/admin/AddApprovalFlowLevel";
 import LeaveBalanceManagement from "./pages/admin/LeaveBalance";
+import LeaveRequestManagement from "./pages/admin/LeaveRequestManagement";
 
 // Main App Component
 export default function App() {
@@ -168,6 +169,7 @@ export default function App() {
         <Route path="approvalflowlevel/edit/:id" element={<ErrorBoundary> <EditApprovalFlowLevel /> </ErrorBoundary>} />
         <Route path="approvalflowlevel/add" element={<ErrorBoundary> <AddApprovalFlowLevel /> </ErrorBoundary>} />
         <Route path="leave-balance" element={<ErrorBoundary> <LeaveBalanceManagement /> </ErrorBoundary>} />
+        <Route path="leave-request-admin" element={<ErrorBoundary><LeaveRequestManagement /></ErrorBoundary>} />
       </Route>
     </Routes>
   );
