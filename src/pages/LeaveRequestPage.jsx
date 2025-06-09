@@ -23,6 +23,7 @@ const LeaveRequestPage = () => {
     hasClass: false,
     isHalfDay: false,
     startTime: '',
+     session: '',
     endTime: '',
     earnedDate: '',
     fileUpload: null,
@@ -31,6 +32,7 @@ const LeaveRequestPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notificationStatus, setNotificationStatus] = useState('');
   const [errors, setErrors] = useState([]);
+  const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [showAlterationType, setShowAlterationType] = useState(false);
   const navigate = useNavigate();
@@ -91,7 +93,9 @@ const leaveRequestData = {
   hasClass: formData.hasClass,
   fileUpload: uploadedUrl || null, // Assigns null if no file uploaded
 };
-
+if (formData.isHalfDay && formData.session) {
+  leaveRequestData.session = formData.session;
+}
 
       if (['Permission', 'Late'].includes(formData.leaveType)) {
         if (formData.startTime) leaveRequestData.startTime = formData.startTime;
@@ -111,16 +115,27 @@ const leaveRequestData = {
         leaveRequestData.medicalFile = formData.document;
       }
 
-      const result = await leaveRequestService.createDraftLeaveRequest(leaveRequestData);
-      setSuccessMessage('Leave request submitted successfully!');
-      navigate('/dashboard/leave-history'); // Redirect to leave requests page after submission
-      console.log('Leave request submitted:', result);
-    } catch (error) {
-      setErrors(['Failed to submit leave request. Please try again.']);
-      console.error('Submission error:', error);
-    } finally {
-      setIsSubmitting(false);
-    }
+
+  const result = await leaveRequestService.createDraftLeaveRequest(leaveRequestData);
+  setSuccessMessage('Leave request submitted successfully!');
+  navigate('/dashboard/leave-history'); // Redirect to leave requests page after submission
+  console.log('Leave request submitted:', result);
+}catch (error) {
+  console.error("Error creating draft leave request:", error);
+
+  if (error.response && error.response.status === 400) {
+    setErrorMessage(error.response.data.message || error.response.data);
+  } else if (error.message) {
+    // If error is a JS Error with message, show that message
+    setErrorMessage(error.message);
+  } else {
+    setErrorMessage("Something went wrong. Please try again.");
+  }
+}finally {
+  setIsSubmitting(false); // Always reset loading state
+}
+
+
   };
 
 
@@ -134,6 +149,7 @@ const leaveRequestData = {
       reason: '',
       hasClass: false,
       isHalfDay: false,
+       session: '',
       alterationMode: '',
       startTime: '',
       endTime: '',
@@ -156,13 +172,11 @@ const leaveRequestData = {
       <h2 className="leave-request-heading">Leave Request</h2>
 
       <form onSubmit={handleSubmit} className={`leave-request-form ${isSubmitting ? 'loading' : ''}`}>
-        {errors.length > 0 && (
-          <div>
-            {errors.map((error, index) => (
-              <ErrorMessage key={index} message={error} />
-            ))}
-          </div>
-        )}
+{errorMessage && (
+  <div style={{ color: 'red', marginBottom: '1rem' }}>
+    {errorMessage}
+  </div>
+)}
 
         <SuccessMessage message={successMessage} />
 

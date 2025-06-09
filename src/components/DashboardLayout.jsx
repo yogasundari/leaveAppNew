@@ -21,7 +21,7 @@ export default function DashboardLayout() {
       <nav className={`sidebar ${sidebarOpen ? "open" : ""}`}>
         <ul>
         
-          <li><NavLink to="/dashboard/leaverequests" className={({ isActive }) => (isActive ? "active" : "")}>Leave Requests</NavLink></li>
+          <li><NavLink to="/dashboard/leave-requests" className={({ isActive }) => (isActive ? "active" : "")}>Leave Requests</NavLink></li>
           <li><NavLink to="/dashboard/profile-update" className={({ isActive }) => (isActive ? "active" : "")}>Profile Update</NavLink></li>
           <li><NavLink to="/dashboard/leave-history" className={({ isActive }) => (isActive ? "active" : "")}>Leave History</NavLink></li>
           <li><NavLink to="/dashboard/leave-approval" className={({ isActive }) => (isActive ? "active" : "")}>Leave Approval</NavLink></li>

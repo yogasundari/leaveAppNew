@@ -87,7 +87,7 @@ const [uploadError, setUploadError] = useState('');
         />
       </FormGroup>
 
-      {/* ✅ Conditional fields based on leave type */}
+      {/* Conditional fields based on leave type */}
       {selectedLeaveType?.label === 'Compensatory Leave' && (
         <FormGroup>
           <FormLabel required>Earned Date</FormLabel>
@@ -143,13 +143,13 @@ const [uploadError, setUploadError] = useState('');
     try {
       const uploadedUrl = await LeaveRequestService.uploadDocument(formData.documentFile);
 
-      // ✅ Save the uploaded URL in local storage
+      // Save the uploaded URL in local storage
       localStorage.setItem('uploadedDocumentUrl', uploadedUrl);
 
-      // ✅ Optionally store in formData (if needed for immediate use)
+      // Optionally store in formData (if needed for immediate use)
       onChange('documentUrl', uploadedUrl);
 
-      console.log('Uploaded URL:', uploadedUrl); // ✅ Now this should be correct
+      console.log('Uploaded URL:', uploadedUrl); //  Now this should be correct
 
       alert('Document uploaded successfully!');
     } catch (error) {
@@ -227,25 +227,49 @@ const navigate = useNavigate();
 
 export const HalfDaySection = ({ formData, onChange }) => {
   const halfDayOptions = [
-    { value: true, label: 'yes' },
-    { value: false, label: 'no' }
+    { value: true, label: 'Yes' },
+    { value: false, label: 'No' }
+  ];
+
+  const sessionOptions = [
+    { value: 'FN', label: 'Forenoon (FN)' },
+    { value: 'AN', label: 'Afternoon (AN)' }
   ];
 
   return (
-    <FormGroup>
-      <FormLabel>Select Half Day Type</FormLabel>
-      <RadioGroup
-        name="halfDayType"
-        value={formData.halfDayType}
-        onChange={(e) => {
-          const boolValue = e.target.value === 'true';
-          onChange('halfDayType', boolValue);
-        }}
-        options={halfDayOptions}
-      />
-    </FormGroup>
+    <>
+      <FormGroup>
+        <FormLabel required>Is this a Half Day?</FormLabel>
+        <RadioGroup
+          name="halfDay"
+          value={formData.halfDay}
+          onChange={(e) => {
+            const boolValue = e.target.value === 'true';
+            onChange('halfDay', boolValue);
+            if (!boolValue) {
+              onChange('session', ''); // Clear session if not half-day
+            }
+          }}
+          options={halfDayOptions}
+        />
+      </FormGroup>
+
+      {formData.halfDay && (
+        <FormGroup>
+          <FormLabel required>Session</FormLabel>
+          <FormSelect
+            value={formData.session || ''}
+            onChange={(e) => onChange('session', e.target.value)}
+            options={sessionOptions}
+            required
+            placeholder="Select Session"
+          />
+        </FormGroup>
+      )}
+    </>
   );
 };
+
 
 
 export const TimeSection = ({ formData, onChange }) => {

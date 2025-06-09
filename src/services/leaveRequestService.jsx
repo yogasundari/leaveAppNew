@@ -100,50 +100,60 @@ class LeaveRequestService {
     }
   }
 
-  async createDraftLeaveRequest(leaveRequestData) {
-    try {
-      const token = this.getAuthToken();
-      const empId = this.getEmployeeId();
+ async createDraftLeaveRequest(leaveRequestData) {
+  try {
+    const token = this.getAuthToken();
+    const empId = this.getEmployeeId();
 
-      console.log("👉 Auth Token:", token);
-      console.log("👉 Employee ID:", empId);
-      console.log("👉 Leave Request Payload:", leaveRequestData);
+    console.log("👉 Auth Token:", token);
+    console.log("👉 Employee ID:", empId);
+    console.log("👉 Leave Request Payload:", leaveRequestData);
 
-      const response = await fetch(`${this.baseURL}/leave-request/create-draft`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.getAuthToken()}`,
-        },
-        body: JSON.stringify(leaveRequestData),
-      });
+    const response = await fetch(`${this.baseURL}/leave-request/create-draft`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(leaveRequestData),
+    });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+    if (!response.ok) {
+      // Try to extract error message from response body
+      const errorText = await response.text();
+      try {
+        const jsonError = JSON.parse(errorText); // if it's a JSON string
+        const message = jsonError.message || errorText;
+        throw new Error(message);
+      } catch {
+        // If not JSON, just return text
+        throw new Error(errorText || `HTTP error! status: ${response.status}`);
       }
-
-      const data = await response.text();
-      console.log("Server response:", data);
-
-      const match = data.match(/ID:\s*(\d+)/);
-      const requestId = match ? match[1] : null;
-
-      if (requestId) {
-        localStorage.setItem('requestId', requestId);
-        console.log(" Stored requestId in localStorage:", requestId);
-      } else {
-        console.error(" Could not extract requestId from response:", data);
-      }
-
-      return {
-        message: data,
-        requestId: requestId,
-      };
-    } catch (error) {
-      console.error('Error creating draft leave request:', error);
-      throw error;
     }
+
+    const data = await response.text();
+    console.log("Server response:", data);
+
+    const match = data.match(/ID:\s*(\d+)/);
+    const requestId = match ? match[1] : null;
+
+    if (requestId) {
+      localStorage.setItem('requestId', requestId);
+      console.log("Stored requestId in localStorage:", requestId);
+    } else {
+      console.error("Could not extract requestId from response:", data);
+    }
+
+    return {
+      message: data,
+      requestId: requestId,
+    };
+  } catch (error) {
+    console.error('Error creating draft leave request:', error);
+    throw error; // rethrow to let caller handle
   }
+}
+
 
   async submitLeaveRequest(requestId, alterationData = null) {
     try {
