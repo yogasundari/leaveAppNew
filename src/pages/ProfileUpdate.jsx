@@ -26,6 +26,8 @@ const ProfileUpdate = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
+const [isJoiningDateFinalized, setIsJoiningDateFinalized] = useState(false);
+
   useEffect(() => {
     if (userData.empId) {
       loadInitialData();
@@ -57,13 +59,22 @@ const ProfileUpdate = () => {
         profilePicture: data.profilePicture || '',
         approvalFlowId: data.approvalFlowId ? data.approvalFlows.approvalFlowId : '',
         joiningDate: employeeService.formatDateForInput(data.joiningDate)
+        
       });
       setImagePreview(data.profilePicture || '');
     } catch (error) {
       throw new Error('Failed to fetch employee profile: ' + error.message);
     }
   };
+const handleDateInputChange = (e) => {
+  const { name, value } = e.target;
+  setFormData((prev) => ({ ...prev, [name]: value }));
 
+  // Only mark as finalized if it's joiningDate and fully valid
+  if (name === 'joiningDate' && value) {
+    setIsJoiningDateFinalized(true);
+  }
+};
   const fetchDepartments = async () => {
     try {
       const data = await employeeService.getDepartments();
@@ -172,7 +183,16 @@ console.log(" Sending profile update data to backend:", formData);
   ]}
 />
 
-        <ProfileFormInput name="joiningDate" label="Joining Date" type="date" value={formData.joiningDate} onChange={handleInputChange} required  disabled={!!formData.joiningDate}/>
+        <ProfileFormInput
+  name="joiningDate"
+  label="Joining Date"
+  type="date"
+  value={formData.joiningDate}
+  onChange={handleDateInputChange}
+  required
+  disabled={isJoiningDateFinalized}
+/>
+
 
         <div className="form-group">
           <label className="form-label" htmlFor="departmentId">

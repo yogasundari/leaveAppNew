@@ -95,10 +95,27 @@ const handleAction = async (approvalId, status) => {
           <h3>
             {req.empName} ({req.empId}) — {req.leaveType} 
           </h3>
-          <h3>
-            {req.fileUpload}
-          </h3>
-          <p>
+          {req.fileUpload && (
+  <p style={{ 
+    marginTop: '10px',
+    padding: '8px 0',
+    borderTop: '1px solid #eee'
+  }}>
+    <strong>Attachment:</strong>{" "}
+    <a 
+      href={req.fileUpload} 
+      target="_blank" 
+      rel="noopener noreferrer"
+      style={{ 
+        color: '#495057',
+        textDecoration: 'underline'
+      }}
+    >
+      View Document ↗
+    </a>
+  </p>
+)}
+             <p>
             <strong>From:</strong> {req.startDate} &nbsp; | &nbsp;{" "}
             <strong>To:</strong> {req.endDate}
           </p>

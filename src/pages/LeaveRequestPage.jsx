@@ -1,4 +1,3 @@
-// LeaveRequestPage.js
 import React, { useState } from 'react';
 import leaveRequestService from '../services/leaveRequestService';
 import {
@@ -23,10 +22,11 @@ const LeaveRequestPage = () => {
     hasClass: false,
     isHalfDay: false,
     startTime: '',
-     session: '',
+    session: '',
     endTime: '',
     earnedDate: '',
-    fileUpload: null,
+    fileUpload: null,   // Store uploaded file URL here
+    document: null,     // File object for upload
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -63,6 +63,16 @@ const LeaveRequestPage = () => {
     }
   };
 
+  // Example file input handler to store file object & clear previous uploaded URL if new file selected
+  const handleFileChange = (e) => {
+    const file = e.target.files[0] || null;
+    setFormData(prev => ({
+      ...prev,
+      document: file,
+      fileUpload: null,  // Reset uploaded URL because new file selected
+    }));
+  };
+
   const handleMoveToAlteration = () => {
     setShowAlterationType(true);
   };
@@ -80,22 +90,21 @@ const LeaveRequestPage = () => {
         setIsSubmitting(false);
         return;
       }
-const uploadedUrl = localStorage.getItem('uploadedDocumentUrl');
-console.log('Uploaded Document URL:', uploadedUrl);
 
-const leaveRequestData = {
-  empId: formData.empId,
-  leaveTypeId: formData.leaveTypeId,
-  isHalfDay: formData.isHalfDay,
-  startDate: formData.startDate,
-  endDate: formData.endDate,
-  reason: formData.reason,
-  hasClass: formData.hasClass,
-  fileUpload: uploadedUrl || null, // Assigns null if no file uploaded
-};
-if (formData.isHalfDay && formData.session) {
-  leaveRequestData.session = formData.session;
-}
+      const leaveRequestData = {
+        empId: formData.empId,
+        leaveTypeId: formData.leaveTypeId,
+        isHalfDay: formData.isHalfDay,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        reason: formData.reason,
+        hasClass: formData.hasClass,
+        fileUpload: formData.fileUpload || null,  // Use fileUpload from formData state
+      };
+
+      if (formData.isHalfDay && formData.session) {
+        leaveRequestData.session = formData.session;
+      }
 
       if (['Permission', 'Late'].includes(formData.leaveType)) {
         if (formData.startTime) leaveRequestData.startTime = formData.startTime;
@@ -106,38 +115,34 @@ if (formData.isHalfDay && formData.session) {
         leaveRequestData.earnedDate = formData.earnedDate;
       }
 
+      // If a new document file is selected, upload it
       if (formData.document) {
         const uploadResult = await leaveRequestService.uploadDocument(formData.document);
-        leaveRequestData.documentUrl = uploadResult.url;
+        leaveRequestData.fileUpload = uploadResult.url; // Save uploaded URL in leaveRequestData
       }
 
       if (formData.leaveType === 'ML' && formData.document) {
         leaveRequestData.medicalFile = formData.document;
       }
 
+      const result = await leaveRequestService.createDraftLeaveRequest(leaveRequestData);
+      setSuccessMessage('Leave request submitted successfully!');
+      navigate('/dashboard/leave-history'); // Redirect after submission
+      console.log('Leave request submitted:', result);
+    } catch (error) {
+      console.error("Error creating draft leave request:", error);
 
-  const result = await leaveRequestService.createDraftLeaveRequest(leaveRequestData);
-  setSuccessMessage('Leave request submitted successfully!');
-  navigate('/dashboard/leave-history'); // Redirect to leave requests page after submission
-  console.log('Leave request submitted:', result);
-}catch (error) {
-  console.error("Error creating draft leave request:", error);
-
-  if (error.response && error.response.status === 400) {
-    setErrorMessage(error.response.data.message || error.response.data);
-  } else if (error.message) {
-    // If error is a JS Error with message, show that message
-    setErrorMessage(error.message);
-  } else {
-    setErrorMessage("Something went wrong. Please try again.");
-  }
-}finally {
-  setIsSubmitting(false); // Always reset loading state
-}
-
-
+      if (error.response && error.response.status === 400) {
+        setErrorMessage(error.response.data.message || error.response.data);
+      } else if (error.message) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage("Something went wrong. Please try again.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-
 
   const resetForm = () => {
     setFormData({
@@ -149,12 +154,13 @@ if (formData.isHalfDay && formData.session) {
       reason: '',
       hasClass: false,
       isHalfDay: false,
-       session: '',
+      session: '',
       alterationMode: '',
       startTime: '',
       endTime: '',
       earnedDate: '',
       fileUpload: null,
+      document: null,
       classPeriod: '',
       subjectCode: '',
       subjectName: '',
@@ -172,11 +178,12 @@ if (formData.isHalfDay && formData.session) {
       <h2 className="leave-request-heading">Leave Request</h2>
 
       <form onSubmit={handleSubmit} className={`leave-request-form ${isSubmitting ? 'loading' : ''}`}>
-{errorMessage && (
-  <div style={{ color: 'red', marginBottom: '1rem' }}>
-    {errorMessage}
-  </div>
-)}
+
+        {errorMessage && (
+          <div style={{ color: 'red', marginBottom: '1rem' }}>
+            {errorMessage}
+          </div>
+        )}
 
         <SuccessMessage message={successMessage} />
 
@@ -185,6 +192,8 @@ if (formData.isHalfDay && formData.session) {
         <TimeSection formData={formData} onChange={handleFieldChange} />
         <CompoffSection formData={formData} onChange={handleFieldChange} />
         <ClassSection formData={formData} onChange={handleFieldChange} />
+
+
 
         <Button type="submit" disabled={isSubmitting} variant="primary">
           {isSubmitting ? 'Submitting...' : 'Submit Leave Request'}

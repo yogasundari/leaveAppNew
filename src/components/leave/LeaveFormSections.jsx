@@ -1,5 +1,4 @@
 // components/leave/LeaveFormSections.js
-import React from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';    
@@ -124,49 +123,64 @@ const [uploadError, setUploadError] = useState('');
       )}
 <FormGroup>
   <FormLabel>Upload Document</FormLabel>
+
+  {/* File Input */}
   <FormInput
     type="file"
-    onChange={(e) => onChange('documentFile', e.target.files[0])} // store raw file temporarily
+    onChange={(e) => onChange('fileUpload', e.target.files[0])}
   />
+
+  {/* Display selected file name */}
+  {formData.fileUpload && (
+    <div style={{ marginTop: '5px', fontSize: '14px', color: '#666' }}>
+      Selected: {formData.documentFile.name} ({(formData.documentFile.size / 1024).toFixed(1)} KB)
+    </div>
+  )}
+
+  {/* Display uploaded file URL if available */}
+  {formData.fileUpload && (
+    <div style={{ marginTop: '5px', fontSize: '14px', color: 'green' }}>
+      ✓ File uploaded successfully
+    </div>
+  )}
+
+  {/* Upload Button */}
   <button
-  type="button"
-  disabled={uploading}
-  onClick={async () => {
-    if (!formData.documentFile) {
-      alert('Please select a file before uploading.');
-      return;
-    }
+    type="button"
+    disabled={uploading || !formData.documentFile}
+    onClick={async () => {
+      if (!formData.documentFile) {
+        alert('Please select a file before uploading.');
+        return;
+      }
 
-    setUploading(true);
-    setUploadError('');
+      setUploading(true);
+      setUploadError('');
 
-    try {
-      const uploadedUrl = await LeaveRequestService.uploadDocument(formData.documentFile);
+      try {
+        // Use your existing service method
+        const uploadedUrl = await LeaveRequestService.uploadDocument(formData.documentFile);
+        
+        console.log('Upload successful, URL:', uploadedUrl);
+        
+        // Store the URL in formData
+        onChange('fileUpload', uploadedUrl);
 
-      // Save the uploaded URL in local storage
-      localStorage.setItem('uploadedDocumentUrl', uploadedUrl);
+        alert('Document uploaded successfully!');
+      } catch (error) {
+        console.error('Upload failed:', error);
+        setUploadError('Failed to upload document. Please try again.');
+      } finally {
+        setUploading(false);
+      }
+    }}
+  >
+    {uploading ? 'Uploading...' : 'Upload Document'}
+  </button>
 
-      // Optionally store in formData (if needed for immediate use)
-      onChange('documentUrl', uploadedUrl);
-
-      console.log('Uploaded URL:', uploadedUrl); //  Now this should be correct
-
-      alert('Document uploaded successfully!');
-    } catch (error) {
-      setUploadError('Failed to upload document. Please try again.');
-    } finally {
-      setUploading(false);
-    }
-  }}
->
-  {uploading ? 'Uploading...' : 'Upload'}
-</button>
-
-
+  {/* Upload error message */}
   {uploadError && <div style={{ color: 'red', marginTop: '5px' }}>{uploadError}</div>}
 </FormGroup>
-
-
 
 
       <FormGroup>
