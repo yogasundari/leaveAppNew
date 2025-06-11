@@ -99,8 +99,7 @@ const handleAction = async (approvalId, status) => {
   <p style={{ 
     marginTop: '10px',
     padding: '8px 0',
-    borderTop: '1px solid #eee'
-  }}>
+}}>
     <strong>Attachment:</strong>{" "}
     <a 
       href={req.fileUpload} 
@@ -119,6 +118,12 @@ const handleAction = async (approvalId, status) => {
             <strong>From:</strong> {req.startDate} &nbsp; | &nbsp;{" "}
             <strong>To:</strong> {req.endDate}
           </p>
+{req.leaveType === 'comp off' && req.earnedDate && (
+  <p>
+    <strong>Earned Date:</strong> {req.earnedDate}
+  </p>
+)}
+
           <p>
             <strong>Reason:</strong> {req.reason}
           </p>

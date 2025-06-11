@@ -38,6 +38,9 @@ const LeaveRequestPage = () => {
   const navigate = useNavigate();
 
   const handleFieldChange = (field, value) => {
+      if (field === 'leaveType') {
+    console.log('Leave type selected:', `"${value}"`); // Shows exact value with quotes
+  }
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -96,6 +99,7 @@ const LeaveRequestPage = () => {
         leaveTypeId: formData.leaveTypeId,
         isHalfDay: formData.isHalfDay,
         startDate: formData.startDate,
+        earnedDate: formData.earnedDate,
         endDate: formData.endDate,
         reason: formData.reason,
         hasClass: formData.hasClass,
@@ -111,7 +115,7 @@ const LeaveRequestPage = () => {
         if (formData.endTime) leaveRequestData.endTime = formData.endTime;
       }
 
-      if (formData.leaveType === 'Compoff' && formData.earnedDate) {
+      if (formData.leaveType === 'comp off' && formData.earnedDate) {
         leaveRequestData.earnedDate = formData.earnedDate;
       }
 

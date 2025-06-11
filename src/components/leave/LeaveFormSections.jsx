@@ -87,7 +87,7 @@ const [uploadError, setUploadError] = useState('');
       </FormGroup>
 
       {/* Conditional fields based on leave type */}
-      {selectedLeaveType?.label === 'Compensatory Leave' && (
+      {selectedLeaveType?.label === 'comp off' && (
         <FormGroup>
           <FormLabel required>Earned Date</FormLabel>
           <FormInput
@@ -316,7 +316,7 @@ export const TimeSection = ({ formData, onChange }) => {
 };
 
 export const CompoffSection = ({ formData, onChange }) => {
-  if (formData.leaveType !== 'Compoff') {
+  if (formData.leaveType !== 'comp off') {
     return null;
   }
 
