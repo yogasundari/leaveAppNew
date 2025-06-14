@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router';
 
 export default function AddLeaveType() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     typeName: '',
     maxAllowedPerYear: '',
@@ -42,7 +44,7 @@ export default function AddLeaveType() {
         }
       });
       alert('Leave type added successfully.');
-
+      navigate('/admin-panel/leave-type'); // Redirect to leave type management page
       // Reset form
       setFormData({
         typeName: '',

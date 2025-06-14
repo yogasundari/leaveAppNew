@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 export default function AddApprovalFlow({ onClose, onCreated }) {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     finalApproverId: '',
@@ -44,6 +46,7 @@ export default function AddApprovalFlow({ onClose, onCreated }) {
       );
 
       alert('Approval Flow created successfully!');
+      navigate ('/admin-panel/approvalflow'); // Redirect to approval flow management page
       if (onCreated) onCreated();
       if (onClose) onClose();
     } catch (error) {

@@ -18,16 +18,21 @@ export default function EditLeaveType() {
     active: true
   });
 
-  useEffect(() => {
-    // Fetch leave type by ID
-    axios.get(`http://localhost:8080/api/leave-types/${id}`)
-      .then(res => {
-        setFormData(res.data);
-      })
-      .catch(err => {
-        console.error('Error fetching leave type:', err);
-      });
-  }, [id]);
+useEffect(() => {
+  const token = localStorage.getItem('token');
+
+  axios.get(`http://localhost:8080/api/leave-types/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  })
+  .then(res => {
+    setFormData(res.data);
+  })
+  .catch(err => {
+    console.error('Error fetching leave type:', err);
+  });
+}, [id]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;

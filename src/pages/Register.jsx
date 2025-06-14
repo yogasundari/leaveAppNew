@@ -43,7 +43,7 @@ try {
         <input type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} required />
         <select name="role" value={formData.role} onChange={handleChange}>
           <option value="EMPLOYEE">EMPLOYEE</option>
-          <option value="ADMIN">ADMIN</option>
+          
         </select>
         <button type="submit">Register</button>
       </form>

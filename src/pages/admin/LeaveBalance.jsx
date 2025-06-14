@@ -54,11 +54,34 @@ const handleSave = async () => {
     console.error(err);
   }
 };
+ const resetLeaveBalances = async () => {
+        const token = localStorage.getItem('token'); 
+        try {
+            const response = await fetch('http://localhost:8080/api/reset-leave-balances', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': 'application/json'
+                }
+            });
 
+            const data = await response.json();
 
+            if (data.success) {
+                alert("Leave balances reset successfully!");
+            } else {
+                alert("Failed: " + data.message);
+            }
+
+        } catch (error) {
+            console.error('Error:', error);
+            alert("An error occurred while resetting leave balances.");
+        }
+    };
   return (
     <div style={{ padding: "2rem" }}>
       <h2>Employee Leave Balance (Admin Panel)</h2>
+      <button onClick={resetLeaveBalances}>Reset Employee Balance </button>
       {Object.entries(leaveData).map(([empCode, leaves]) => (
         <div key={empCode} style={{ border: "1px solid #ccc", padding: "1rem", marginBottom: "1rem" }}>
           <strong>{empCode}</strong>

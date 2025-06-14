@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import LeaveSearch from './LeaveSearch';
 
 const LeaveRequestManagement = () => {
   const [leaveRequests, setLeaveRequests] = useState([]);
@@ -29,6 +30,7 @@ useEffect(() => {
   return (
     <div>
       <h2>Leave Request Management</h2>
+      <LeaveSearch setLeaveRequests={setLeaveRequests} />
       <table border="1" cellPadding="5" cellSpacing="0" style={{ width: '100%', textAlign: 'left' }}>
         <thead>
           <tr>

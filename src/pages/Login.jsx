@@ -33,8 +33,12 @@ const handleSubmit = async (e) => {
     console.log("Response:", res.data);
     navigate("/dashboard");
   } catch (error) {
+  if (error.response && error.response.status === 401) {
+    setMessage("Invalid email or password.");
+  } else {
     setMessage("Login failed: " + (error.response?.data?.message || error.message));
   }
+}
 };
 
 

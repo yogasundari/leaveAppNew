@@ -94,6 +94,15 @@ export default function AdminLayout() {
               Leave Request Management
             </NavLink>
           </li>
+                      <li>
+            <NavLink 
+              to="/dashboard" 
+              className={({ isActive }) => (isActive ? "active" : "")}
+              onClick={() => setSidebarOpen(false)}
+            >
+              Employee Dashboard
+            </NavLink>
+          </li>
         </ul>
       </nav>
 

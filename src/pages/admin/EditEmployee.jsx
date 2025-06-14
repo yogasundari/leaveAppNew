@@ -19,6 +19,7 @@ const EditEmployee = () => {
     designation: '',
     departmentId: '',
     staffType: '',
+    role: '', // Added role field
     profilePicture: '',
     approvalFlowId: '',
     joiningDate: '',
@@ -29,7 +30,8 @@ const EditEmployee = () => {
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-const navigate = useNavigate();
+  const navigate = useNavigate();
+
   useEffect(() => {
     if (id) {
       loadInitialData();
@@ -66,6 +68,7 @@ const navigate = useNavigate();
         designation: emp.designation,
         departmentId: emp.department?.departmentId || '',
         staffType: emp.staffType,
+        role: emp.role || '', // Added role from API response
         profilePicture: emp.profilePicture || '',
         approvalFlowId: emp.approvalFlow?.approvalFlowId || '',
         joiningDate: emp.joiningDate?.slice(0, 10) || '',
@@ -143,7 +146,8 @@ const navigate = useNavigate();
       designation: formData.designation,
       departmentId: formData.departmentId,
       joiningDate: formData.joiningDate,
-      staffType: formData.staffType
+      staffType: formData.staffType,
+      role: formData.role // Added role to payload
     };
 
     try {
@@ -187,17 +191,30 @@ const navigate = useNavigate();
         <ProfileFormInput name="empId" label="Employee ID" value={formData.empId} disabled />
         <ProfileFormInput name="empName" label="Employee Name" value={formData.empName} onChange={handleInputChange} required />
         <ProfileFormInput name="designation" label="Designation" value={formData.designation} onChange={handleInputChange} />
+        
         <ProfileFormInput
-  name="staffType"
-  label="Staff Type"
-  value={formData.staffType}
-  onChange={handleInputChange}
-  required
-  options={[
-    { label: 'TEACHING', value: 'TEACHING' },
-    { label: 'NON_TEACHING', value: 'NON_TEACHING' }
-  ]}
-/>
+          name="staffType"
+          label="Staff Type"
+          value={formData.staffType}
+          onChange={handleInputChange}
+          required
+          options={[
+            { label: 'TEACHING', value: 'TEACHING' },
+            { label: 'NON_TEACHING', value: 'NON_TEACHING' }
+          ]}
+        />
+
+        <ProfileFormInput
+          name="role"
+          label="Role"
+          value={formData.role}
+          onChange={handleInputChange}
+          required
+          options={[
+            { label: 'EMPLOYEE', value: 'EMPLOYEE' },
+            { label: 'ADMIN', value: 'ADMIN' }
+          ]}
+        />
 
         <ProfileFormInput name="joiningDate" label="Joining Date" type="date" value={formData.joiningDate} onChange={handleInputChange} required />
 
@@ -220,35 +237,35 @@ const navigate = useNavigate();
           </select>
         </div>
 
-<div className="form-group">
-            <label className="form-label" htmlFor="approvalFlowId">
-              Approval Flow <span style={{ color: '#dc3545', marginLeft: '4px' }}>*</span>
-            </label>
-           <div className="form-group">
-           <select
-             id="approvalFlowId"
-             name="approvalFlowId"
-             value={formData.approvalFlowId ?? ''} // Ensure a fallback for undefined
-            onChange={(e) => {
-             const id = parseInt(e.target.value, 10);
-             console.log("Selected Approval Flow ID:", id); // Debug output
-             setFormData((prev) => ({
-            ...prev,
-             approvalFlowId: id, // Set parsed integer to state
-            }));
-           }}
-          className="form-select"
-            required
-          >
-         <option value="">Select Approval Flow</option>
-        {approvalFlows.map((flow) => (
-            <option key={flow.approvalFlowId} value={flow.approvalFlowId}>
-          {flow.name}
-         </option>
-             ))}
-          </select>
-        </div>
+        <div className="form-group">
+          <label className="form-label" htmlFor="approvalFlowId">
+            Approval Flow <span style={{ color: '#dc3545', marginLeft: '4px' }}>*</span>
+          </label>
+          <div className="form-group">
+            <select
+              id="approvalFlowId"
+              name="approvalFlowId"
+              value={formData.approvalFlowId ?? ''} // Ensure a fallback for undefined
+              onChange={(e) => {
+                const id = parseInt(e.target.value, 10);
+                console.log("Selected Approval Flow ID:", id); // Debug output
+                setFormData((prev) => ({
+                  ...prev,
+                  approvalFlowId: id, // Set parsed integer to state
+                }));
+              }}
+              className="form-select"
+              required
+            >
+              <option value="">Select Approval Flow</option>
+              {approvalFlows.map((flow) => (
+                <option key={flow.approvalFlowId} value={flow.approvalFlowId}>
+                  {flow.name}
+                </option>
+              ))}
+            </select>
           </div>
+        </div>
 
         <button type="submit" disabled={isLoading} className="submit-button">
           {isLoading ? 'Updating...' : 'Update Employee'}
